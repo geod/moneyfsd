@@ -453,6 +453,14 @@ def chart_sankey(df, out_dir, footer, top_categories=8, top_subs_per_cat=4):
     fig.write_html(output_path, include_plotlyjs='cdn',
                    config={'displayModeBar': False})
     print(f"  Sankey: {output_path}")
+    # Also emit a static PNG if kaleido is available — useful for embedding
+    # in markdown/PDF reports. Silent fallback to HTML-only otherwise.
+    try:
+        png_path = out_dir / 'chart_11_sankey.png'
+        fig.write_image(png_path, width=1500, height=900, scale=2)
+        print(f"  Sankey PNG: {png_path}")
+    except Exception:
+        pass
 
 
 def _discover_people(df, config_people=None):

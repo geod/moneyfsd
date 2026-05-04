@@ -85,6 +85,11 @@ money actually go* — without the manual slog.
   <img src="docs/screenshots/chart_1_categories.png" width="780" alt="Spending by category">
   <br><br>
   <img src="docs/screenshots/chart_5_housing_sub.png" width="780" alt="Housing breakdown by subcategory">
+  <br><br>
+  <img src="docs/screenshots/chart_11_sankey.png" width="780" alt="Sankey: person to category to subcategory flows">
+  <br>
+  <sub><i>Sankey: every dollar traced from person → category → subcategory.
+  Also rendered as an interactive HTML for click-and-zoom exploration.</i></sub>
 </p>
 
 > You stay in the loop. Claude works interview-style — asking about
