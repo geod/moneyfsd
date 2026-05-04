@@ -36,83 +36,78 @@ SOURCES_BY_PERSON = {
 #                cadence, base_amount, jitter_pct, season_mult)
 # cadence: "monthly" / "weekly" / "biweekly" / "n_per_year:N" / "annual"
 # season_mult: dict[month -> multiplier] OR None
+# Synthetic household persona: upper-middle dual-income family with
+# two kids in public school, one home (no vacation property), modest
+# travel, public-school activities. Aim: ~$110-120k of lifestyle spend
+# over 14 months — relatable, not aspirational.
 PATTERNS = [
     # ---- Housing (the spine: mortgage + utilities + maintenance) ----
-    ("Housing", "Mortgage",      "ROCKET MORTGAGE",         "Alex",  "monthly",  4_280, 0.00, None),
-    ("Housing", "Property Tax",  "COUNTY TAX COLLECTOR",    "Alex",  "n_per_year:2", 5_400, 0.05, None),
-    ("Housing", "Insurance",     "STATE FARM HOME INS",     "Alex",  "annual",     2_100, 0.05, None),
-    ("Housing", "Utilities",     "PG&E ELECTRIC",           "Alex",  "monthly",      210, 0.20, {1:1.4,2:1.3,7:1.5,8:1.6,12:1.3}),
-    ("Housing", "Utilities",     "CITY WATER",              "Alex",  "monthly",       95, 0.10, None),
-    ("Housing", "Utilities",     "COMCAST INTERNET",        "Alex",  "monthly",       89, 0.02, None),
-    ("Housing", "Maintenance",   "HOME DEPOT",              "either", "n_per_year:8", 180, 0.50, None),
-    ("Housing", "Maintenance",   "HANDYMAN SERVICES",       "Alex",  "n_per_year:4",  450, 0.40, None),
-    ("Housing", "Cleaning",      "MARIA CLEANING SERVICE",  "Sam",   "biweekly",      180, 0.05, None),
+    ("Housing", "Mortgage",      "ROCKET MORTGAGE",         "Alex",  "monthly",  2_200, 0.00, None),
+    ("Housing", "Property Tax",  "COUNTY TAX COLLECTOR",    "Alex",  "n_per_year:2", 2_500, 0.05, None),
+    ("Housing", "Insurance",     "STATE FARM HOME INS",     "Alex",  "annual",     1_500, 0.05, None),
+    ("Housing", "Utilities",     "ELECTRIC COMPANY",        "Alex",  "monthly",      165, 0.20, {1:1.4,2:1.3,7:1.5,8:1.6,12:1.3}),
+    ("Housing", "Utilities",     "CITY WATER",              "Alex",  "monthly",       72, 0.10, None),
+    ("Housing", "Utilities",     "INTERNET",                "Alex",  "monthly",       75, 0.02, None),
+    ("Housing", "Utilities",     "NATURAL GAS",             "Alex",  "monthly",       55, 0.30, {11:1.6,12:1.8,1:1.9,2:1.8,3:1.4}),
+    ("Housing", "Maintenance",   "HOME DEPOT",              "either", "n_per_year:6", 120, 0.50, None),
+    ("Housing", "Maintenance",   "HANDYMAN",                "Alex",  "n_per_year:3",  340, 0.40, None),
 
     # ---- Food ----
-    ("Food", "Groceries",        "WHOLE FOODS",             "either","weekly",        165, 0.30, None),
-    ("Food", "Groceries",        "TRADER JOE'S",            "either","weekly",         85, 0.35, None),
-    ("Food", "Groceries",        "SAFEWAY",                 "either","n_per_year:30",  68, 0.40, None),
-    ("Food", "Restaurants",      "CHIPOTLE",                "either","weekly",         28, 0.25, None),
-    ("Food", "Restaurants",      "LOCAL BISTRO",            "Alex",  "n_per_year:20", 145, 0.40, None),
-    ("Food", "Restaurants",      "SUSHI HOUSE",             "Sam",   "n_per_year:18",  92, 0.35, None),
-    ("Food", "Restaurants",      "STARBUCKS",               "either","n_per_year:120",  7, 0.30, None),
-    ("Food", "Delivery",         "DOORDASH",                "either","n_per_year:35",  42, 0.50, None),
+    ("Food", "Groceries",        "WHOLE FOODS",             "either","weekly",        140, 0.30, None),
+    ("Food", "Groceries",        "TRADER JOE'S",            "either","weekly",         75, 0.35, None),
+    ("Food", "Groceries",        "SAFEWAY",                 "either","n_per_year:24",  62, 0.40, None),
+    ("Food", "Restaurants",      "CHIPOTLE",                "either","weekly",         24, 0.25, None),
+    ("Food", "Restaurants",      "LOCAL BISTRO",            "Alex",  "n_per_year:14",  85, 0.40, None),
+    ("Food", "Restaurants",      "SUSHI HOUSE",             "Sam",   "n_per_year:10",  68, 0.35, None),
+    ("Food", "Restaurants",      "STARBUCKS",               "either","n_per_year:90",   6, 0.30, None),
+    ("Food", "Delivery",         "DOORDASH",                "either","n_per_year:24",  35, 0.50, None),
 
-    # ---- Travel (seasonal: spring break + summer + Thanksgiving + Xmas) ----
-    ("Travel", "Flights",        "UNITED AIRLINES",         "Alex",  "n_per_year:6",  680, 0.40, {3:1.3,6:1.5,7:1.6,11:1.4,12:1.5}),
-    ("Travel", "Flights",        "DELTA AIR LINES",         "Sam",   "n_per_year:4",  520, 0.40, {3:1.3,6:1.5,7:1.6,11:1.4,12:1.5}),
-    ("Travel", "Hotels",         "MARRIOTT",                "Alex",  "n_per_year:6",  420, 0.50, {6:1.5,7:1.7,12:1.4}),
-    ("Travel", "Hotels",         "AIRBNB",                  "Sam",   "n_per_year:4",  680, 0.45, {6:1.4,7:1.6,11:1.3}),
-    ("Travel", "Activities",     "CITY TOURS",              "Alex",  "n_per_year:8",  140, 0.45, {6:1.6,7:1.7,12:1.3}),
+    # ---- Travel (modest: one summer family trip + occasional weekends) ----
+    ("Travel", "Flights",        "DOMESTIC AIRLINE",        "Alex",  "n_per_year:3",  340, 0.30, {6:1.6,7:1.7,11:1.3,12:1.4}),
+    ("Travel", "Flights",        "DOMESTIC AIRLINE",        "Sam",   "n_per_year:2",  340, 0.30, {6:1.6,7:1.7,11:1.3,12:1.4}),
+    ("Travel", "Hotels",         "HOTEL CHAIN",             "Alex",  "n_per_year:5",  220, 0.35, {6:1.5,7:1.7}),
+    ("Travel", "Hotels",         "AIRBNB",                  "Sam",   "n_per_year:2",  380, 0.40, {6:1.6,7:1.7}),
+    ("Travel", "Activities",     "VACATION ACTIVITIES",     "Alex",  "n_per_year:6",   75, 0.45, {6:1.6,7:1.8}),
 
-    # ---- Holiday Home (smaller mortgage + utilities) ----
-    ("Holiday Home", "Mortgage", "VAC HOME MORTGAGE",       "Alex",  "monthly",     1_490, 0.00, None),
-    ("Holiday Home", "Utilities","MOUNTAIN POWER CO-OP",    "Alex",  "monthly",       145, 0.30, {1:1.5,2:1.4,7:1.3}),
-    ("Holiday Home", "HOA",      "LAKE COMMUNITY HOA",      "Alex",  "n_per_year:4",  340, 0.05, None),
-    ("Holiday Home", "Maintenance","CABIN MAINTENANCE",     "Alex",  "n_per_year:6",  280, 0.50, None),
-
-    # ---- Kids ----
-    ("Kids", "Schools",          "PRIVATE SCHOOL TUITION",  "Sam",   "n_per_year:10", 2_900, 0.02, None),
-    ("Kids", "Activities",       "SOCCER LEAGUE",           "Sam",   "n_per_year:4",  185, 0.10, None),
-    ("Kids", "Activities",       "MUSIC LESSONS",           "Sam",   "monthly",       240, 0.05, None),
-    ("Kids", "Camps",            "SUMMER CAMP",             "Sam",   "n_per_year:2", 1_650, 0.05, {6:2,7:2}),
-    ("Kids", "Clothing",         "CARTERS",                 "either","n_per_year:10", 110, 0.40, {8:1.6,12:1.5}),
+    # ---- Kids (public school + after-school + activities) ----
+    ("Kids", "After School",     "AFTER SCHOOL CARE",       "Sam",   "monthly",       420, 0.05, None),
+    ("Kids", "Activities",       "YOUTH SOCCER",            "Sam",   "n_per_year:4",  140, 0.10, None),
+    ("Kids", "Activities",       "MUSIC LESSONS",           "Sam",   "monthly",       180, 0.05, None),
+    ("Kids", "Activities",       "SWIM CLASS",              "Alex",  "n_per_year:4",  160, 0.10, None),
+    ("Kids", "Camps",            "SUMMER DAY CAMP",         "Sam",   "n_per_year:2",  650, 0.10, {6:2,7:2}),
+    ("Kids", "Clothing",         "OLD NAVY",                "either","n_per_year:8",   75, 0.40, {8:1.6,12:1.5}),
 
     # ---- Health ----
-    ("Health", "Medical",        "PEDIATRICIAN COPAY",      "Sam",   "n_per_year:8",   55, 0.10, None),
-    ("Health", "Medical",        "DENTIST",                 "either","n_per_year:6",  220, 0.30, None),
-    ("Health", "Pharmacy",       "CVS PHARMACY",            "either","n_per_year:18",  38, 0.40, None),
-    ("Health", "Fitness",        "EQUINOX",                 "Alex",  "monthly",       265, 0.00, None),
+    ("Health", "Medical",        "PEDIATRICIAN COPAY",      "Sam",   "n_per_year:6",   45, 0.10, None),
+    ("Health", "Medical",        "DENTIST",                 "either","n_per_year:5",  140, 0.30, None),
+    ("Health", "Pharmacy",       "CVS PHARMACY",            "either","n_per_year:14",  32, 0.40, None),
+    ("Health", "Fitness",        "YMCA FAMILY",             "Alex",  "monthly",        92, 0.00, None),
 
     # ---- Subscriptions ----
     ("Subscriptions", "Streaming","NETFLIX",                "Alex",  "monthly",        18, 0.00, None),
     ("Subscriptions", "Streaming","SPOTIFY FAMILY",         "Alex",  "monthly",        17, 0.00, None),
     ("Subscriptions", "Streaming","DISNEY+",                "Sam",   "monthly",        14, 0.00, None),
-    ("Subscriptions", "Streaming","HBO MAX",                "Sam",   "monthly",        16, 0.00, None),
     ("Subscriptions", "Software", "ICLOUD STORAGE",         "Alex",  "monthly",         3, 0.00, None),
-    ("Subscriptions", "Software", "ADOBE CC",               "Alex",  "monthly",        55, 0.00, None),
     ("Subscriptions", "Software", "1PASSWORD",              "Sam",   "annual",         60, 0.00, None),
-    ("Subscriptions", "News",     "NYT DIGITAL",            "Alex",  "monthly",        22, 0.00, None),
-    ("Subscriptions", "News",     "WSJ",                    "Sam",   "monthly",        39, 0.00, None),
+    ("Subscriptions", "News",     "LOCAL NEWSPAPER",        "Alex",  "monthly",        15, 0.00, None),
 
     # ---- Shopping ----
-    ("Shopping", "Clothing",     "NORDSTROM",               "Sam",   "n_per_year:8",  220, 0.50, {11:1.6,12:1.8}),
-    ("Shopping", "Clothing",     "PATAGONIA",               "Alex",  "n_per_year:4",  185, 0.40, {11:1.5,12:1.7}),
-    ("Shopping", "Home Goods",   "AMAZON",                  "either","n_per_year:50",  68, 0.60, {11:1.5,12:1.8}),
-    ("Shopping", "Home Goods",   "TARGET",                  "either","n_per_year:24",  85, 0.50, None),
+    ("Shopping", "Clothing",     "GAP",                     "Sam",   "n_per_year:6",  110, 0.50, {11:1.6,12:1.8}),
+    ("Shopping", "Home Goods",   "AMAZON",                  "either","n_per_year:42",  52, 0.60, {11:1.5,12:1.8}),
+    ("Shopping", "Home Goods",   "TARGET",                  "either","n_per_year:24",  72, 0.50, None),
 
     # ---- Pets ----
-    ("Pets", "Vet",              "ANIMAL HOSPITAL",         "Sam",   "n_per_year:4",  280, 0.40, None),
-    ("Pets", "Food",             "CHEWY",                   "Sam",   "monthly",        92, 0.10, None),
+    ("Pets", "Vet",              "ANIMAL HOSPITAL",         "Sam",   "n_per_year:3",  220, 0.40, None),
+    ("Pets", "Food",             "CHEWY",                   "Sam",   "monthly",        72, 0.10, None),
 
     # ---- Transport ----
-    ("Transport", "Gas",         "SHELL",                   "either","n_per_year:36",  58, 0.30, None),
-    ("Transport", "Rideshare",   "UBER",                    "either","n_per_year:30",  24, 0.50, None),
-    ("Transport", "Auto Service","TOYOTA SERVICE",          "Alex",  "n_per_year:3",  340, 0.40, None),
+    ("Transport", "Gas",         "GAS STATION",             "either","n_per_year:36",  52, 0.30, None),
+    ("Transport", "Rideshare",   "UBER",                    "either","n_per_year:18",  22, 0.50, None),
+    ("Transport", "Auto Service","AUTO SERVICE",            "Alex",  "n_per_year:2",  280, 0.40, None),
 
     # ---- Gifts (Dec-heavy) ----
-    ("Gifts", "Family",          "AMAZON GIFTS",            "Sam",   "n_per_year:8",  120, 0.60, {11:2,12:3}),
-    ("Gifts", "Family",          "ETSY",                    "Sam",   "n_per_year:6",   65, 0.60, {11:1.8,12:2.5}),
+    ("Gifts", "Family",          "AMAZON GIFTS",            "Sam",   "n_per_year:6",   85, 0.60, {11:2,12:3}),
+    ("Gifts", "Family",          "ETSY",                    "Sam",   "n_per_year:4",   45, 0.60, {11:1.8,12:2.5}),
 ]
 
 
