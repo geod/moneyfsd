@@ -1,0 +1,26 @@
+{
+  "skill_name": "expenses",
+  "evals": [
+    {
+      "id": 1,
+      "name": "cold-start-consolidation",
+      "prompt": "I'm trying to figure out where my money went over the last year. I'm uploading three CSV exports — my Apple Card (covers Jan-Dec 2025), my Chase Sapphire (same period), and my Wells Fargo checking (same period). Can you help me consolidate these into one view and tell me where I'm spending? My wife and I share the Apple Card (she's listed as 'Sarah Chen' under 'Purchased By' for her transactions; I'm 'Mike Chen'). The Chase is just mine. The checking is joint but most outflows are mine (autopays, bills, etc.). I don't want my mortgage payment, IRS quarterly tax payment in April, or the brokerage transfers ('To Schwab') counted as personal spending — those aren't lifestyle expenses.",
+      "expected_output": "The agent runs the full pipeline: interview (or recognizes the upfront brief is enough), consolidate the three sources, attribute people via cardholder column on Apple, exclude mortgage / IRS / Schwab transfers from checking, categorize, and produce a TTM summary with top categories. Should produce a Lifestyle Expenses CSV and a clear summary.",
+      "files": ["fixtures/apple_card.csv", "fixtures/chase.csv", "fixtures/checking.csv"]
+    },
+    {
+      "id": 2,
+      "name": "fix-and-persist-categorization",
+      "prompt": "Looking at the expense breakdown you just gave me, the ski stuff is showing up under Sports & Hobbies — but for me, ski trips are travel, not a hobby. Lift tickets at Vail, Mammoth, ski rentals, ski school for the kid — all travel. Also, that Bambulab purchase ($1,200) on 11/15/2025 was actually a gift to my brother, not personal. Fix both, and make sure the rules persist so I don't have to tell you again next month when I refresh.",
+      "expected_output": "The agent should: (1) move ski-related rows to Travel/Ski subcategory, (2) move the specific Bambulab row to Charity & Gifts/Gifts via a (Date, Amount, Description) override, (3) update the keyword tables in consolidate.py or the equivalent persistence layer so the rules survive the next refresh, (4) save the updated CSV, (5) confirm both fixes to the user with a clear before/after.",
+      "files": ["fixtures/lifestyle_expenses_with_ski.csv"]
+    },
+    {
+      "id": 3,
+      "name": "category-drilldown",
+      "prompt": "I'm trying to understand my food spending. Show me the breakdown of Food & Dining for the last 12 months — I want to see groceries vs restaurants vs coffee vs delivery, and within each, which merchants are the biggest hits. My wife thinks I'm spending too much on coffee; I want to see if she's right.",
+      "expected_output": "The agent runs a drill-down: subcategory totals within Food & Dining (Groceries, Restaurants, Coffee, Food Delivery, etc.), top merchants by amount in each subcategory, and a clear view of how much went to coffee specifically. Should answer the social question: is the coffee spend actually high in context?",
+      "files": ["fixtures/lifestyle_expenses_full.csv"]
+    }
+  ]
+}

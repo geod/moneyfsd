@@ -1,0 +1,19 @@
+Transaction Date,Category,Subcategory,Description,Sub Type,Amount (USD)
+01/01/2025,Lifestyle,Home Services,Cleaner Janet via Zelle,Cleaning,-300.0
+01/05/2025,Mortgage,Mortgage,WELLS FARGO MTG AUTOPAY,Mortgage,-3850.0
+01/15/2025,Investment,Investment,Schwab MoneyLink Transfer,Investment,-5000.0
+02/01/2025,Lifestyle,Utilities,SCE ELECTRIC AUTOPAY,Utilities,-185.0
+02/05/2025,Mortgage,Mortgage,WELLS FARGO MTG AUTOPAY,Mortgage,-3850.0
+02/15/2025,Lifestyle,Home Services,Cleaner Janet via Zelle,Cleaning,-300.0
+03/05/2025,Mortgage,Mortgage,WELLS FARGO MTG AUTOPAY,Mortgage,-3850.0
+04/15/2025,Taxes,Taxes,IRS DIRECTPAY Q1 ESTIMATED,Taxes,-12000.0
+04/05/2025,Mortgage,Mortgage,WELLS FARGO MTG AUTOPAY,Mortgage,-3850.0
+05/01/2025,Lifestyle,Utilities,SO CAL GAS,Utilities,-95.0
+06/01/2025,Lifestyle,Insurance,Geico Auto Insurance,Insurance,-180.0
+06/15/2025,Investment,Investment,Schwab MoneyLink Transfer,Investment,-5000.0
+07/04/2025,Lifestyle,Home Services,Pool Service,Pool,-200.0
+08/01/2025,Lifestyle,Utilities,Spectrum Internet,Utilities,-100.0
+09/15/2025,Income,Income,ACH Deposit Payroll,Salary,8500.0
+10/05/2025,Mortgage,Mortgage,WELLS FARGO MTG AUTOPAY,Mortgage,-3850.0
+11/12/2025,Lifestyle,Home Services,Plumber Smith Plumbing,Plumbing,-450.0
+12/01/2025,Lifestyle,Charity,RED CROSS donation,Charity,-500.0

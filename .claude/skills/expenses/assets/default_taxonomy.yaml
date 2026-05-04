@@ -1,0 +1,750 @@
+# Default keyword taxonomy. Order within each (Category, Subcategory) doesn't
+# matter, but order ACROSS categories does — the consolidate.py categorizer
+# checks categories in the order they appear here, with first match winning.
+#
+# Place narrower buckets BEFORE broader ones (e.g., "Costco Gas" should hit
+# Auto & Transport / Fuel before Shopping & Retail / Big Box).
+#
+# UPDATE 2026-04-26: Moved Charity & Gifts to top so date-specific gift overrides
+# are evaluated early, before generic shopping keywords can misclassify them.
+
+# ---------- Charity & Gifts ----------
+# Catch gifts and donations (especially date-specific overrides like Brother's gift).
+# This comes early to prevent generic shopping/hobby keywords from catching gifts.
+Charity & Gifts:
+  Gifts:
+    - gift
+    - xmas
+    - birthday
+  Charity:
+    - donation
+    - charity
+    - non-profit
+    - nonprofit
+    - fundrais
+    - gofundme
+    - givelively
+    - redcross
+    - united way
+    - salvation army
+    - goodwill
+
+# ---------- Holiday Home ----------
+# Carved out from Housing so the user can see second-home spend separately.
+# Comes BEFORE Housing so location-specific keywords match first.
+#
+# This block is INTENTIONALLY EMPTY in the default taxonomy — every user's
+# holiday home is in a different town, with different utilities, county, and
+# mortgage servicer. The interview phase asks for these signals and the
+# planner injects them as `overrides` in the user's expenses_config.yaml.
+#
+# Example overrides a user might add (do NOT add to the default taxonomy):
+#   - description: Aspen vacation home utilities
+#     match: { description_contains: holy cross energy }
+#     category: Holiday Home
+#     subcategory: Utilities
+Holiday Home: {}
+
+# ---------- Housing ----------
+# Primary residence: mortgage, taxes, utilities, home improvement.
+# Comes after Holiday Home so holiday-home keywords win first.
+Housing:
+  Mortgage:
+    - rocket mortgage
+    - mtg pymts
+    - mortgage pymt
+    - mortgage payment
+    - wells fargo home mtg
+    - chase home mortgage
+  Property Tax:
+    - tax coll
+    - property tax
+    - county tax
+  HOA / Ownerdraft:
+    - turtle rock glen ownerdraft
+    - ownerdraft
+    - hoa fee
+  Home Improvement:
+    - tailored closet
+    - home depot
+    - lowes
+    - lowe's
+    - sherwin williams
+    - sherwin-williams
+  Utilities:
+    - so cal edison
+    - socalgas
+    - so cal gas
+    - "pg&e"
+    - dwp
+    - water district
+    - waste management
+    - cox communications
+    - cox or co com
+    - spectrum
+    - att internet
+    - verizon fios
+  Home Insurance:
+    - homeowners insurance
+    - lemonade insurance
+
+# ---------- Kids ----------
+# Catch kid-specific spend before generic retail/food/travel keywords.
+Kids:
+  Schools:
+    - school tuition
+    - tuition payment
+    - private school
+  Kids:
+    - kumon
+    - scholarshare
+    - "kid "
+    - child
+    - toddler
+    - baby
+    - diaper
+    - gymnastics
+    - legoland
+    - pokemon
+    - squishmallow
+    - american girl
+    - build-a-bear
+    - lego
+    - melissa & doug
+    - toysrus
+    - toys r us
+    - "pay*camp"
+    - "summer camp"
+    - idtech
+    - id tech
+    - pediatric
+    - potterybarnkids
+    - pottery barn kids
+    - artsonia
+    - boy scout
+    - girl scout
+    - swim team
+
+# ---------- Travel ----------
+# Ski and travel-specific lodging come before generic shopping.
+Travel:
+  Ski:
+    - snow.com
+    - vail resorts
+    - mammoth mtn
+    - mammoth mountain
+    - base mountain
+    - black tie ski
+    - ikon pass
+    - epic pass
+    - creekside
+    - "phil's ski"
+    - phils ski
+    - ski school
+    - ski rental
+    - "ski &"
+    - "ski+ snow"
+    - snowboard
+    - "ls black tie"
+  Lodging / Booking:
+    - airbnb
+    - vrbo
+    - kayak
+    - expedia
+    - booking.com
+    - hopper
+    - priceline
+    - tripadvisor
+  Vacation Rentals:
+    - perthshire holid
+    - holiday cottage
+    - vrbo
+    - airbnb
+  Airlines:
+    # NOTE: keywords match with \b...\b word boundaries, so "alaska air" won't
+    # match "Alaska Airlines" (no word break between "air" and "lines"). Use
+    # full brand names ("alaska airlines") instead of truncated stems.
+    - swiss international
+    - swissair
+    - lufthansa
+    - british airways
+    - air france
+    - klm
+    - emirates
+    - qatar airways
+    - singapore airlines
+    - cathay pacific
+    - delta air
+    - delta airlines
+    - united airlines
+    - american airlines
+    - alaska airlines
+    - southwest airlines
+    - jetblue airways
+    - frontier airlines
+    - virgin atlantic
+    - aa.com
+    - ual.com
+    - dl.com
+    - ryanair
+    - easyjet
+    - norse atlantic
+    - air canada
+    - aeromexico
+  Car Rental:
+    - hertz
+    - avis
+    - enterprise
+    - budget rent
+    - national car
+    - sixt
+    - alamo
+  Hotels:
+    - marriott
+    - hilton
+    - hyatt
+    - sheraton
+    - westin
+    - "ritz "
+    - four seasons
+    - wyndham
+    - ihg
+    - radisson
+    - fairmont
+    - "motel "
+    - revolution hotel
+    - sandos
+  # (duplicate Airlines block left intentionally consolidated above; kept this
+  # placeholder so other downstream subcategories don't reflow.)
+  Ski:
+    - big bear mtn
+    - mammoth
+    - vail
+    - epic pass
+    - ikon pass
+  Lodging / Booking:
+    - el capitan ocean mesa
+    - el capitan canyon
+    - hipcamp
+    - dewarsaberfeldy
+    - aberfeldy distill
+    - "inn "
+    - "hotel "
+    - hotelcom
+    - hotels.com
+  Transit (Travel):
+    - rail europe
+    - v-bahn
+    - vbahn
+    - deutsche bahn
+    - sbb
+    - trenitalia
+    - sncf
+    - swiss travel
+    - stc switzerland
+    - amtrak
+
+# ---------- Auto & Transport ----------
+Auto & Transport:
+  Ride Share:
+    - uber
+    - lyft
+    - waymo
+    - curb
+    - taxi
+    - zipcar
+  Fuel:
+    - chevron
+    - shell
+    - exxon
+    - mobil
+    - "76 "
+    - arco
+    - "bp "
+    - circle k
+    - costco gas
+    - sunoco
+    - valero
+    - texaco
+  Tolls:
+    - fasttrak
+    - fastrak
+    - e-zpass
+    - ezpass
+    - sunpass
+    - good to go
+    - "sr 91"
+    - ca fastrak
+    - ma ezdrive
+    - toll
+  Auto Service:
+    - fletcher jones
+    - mercedes-benz
+    - mercedes benz
+    - bmw of
+    - lexus of
+    - jiffy lube
+    - firestone
+    - discount tire
+    - autozone
+    - advance auto
+    - oreilly
+    - mechanic
+    - smog check
+    - mercedes benz
+    - mercedes-benz
+  Parking:
+    - parking
+    - garage
+    - spothero
+    - parkmobile
+    - airport parking
+  DMV / Registration:
+    - dmv
+    - vehicle registration
+    - ca reg
+  Transportation:
+    - metro
+    - mta
+    - nyct paygo
+    - bart
+    - caltrain
+    - metrolink
+
+# ---------- Food & Dining ----------
+# Coffee before Restaurants because cafés often have "cafe" in name.
+Food & Dining:
+  Coffee:
+    - starbucks
+    - peets
+    - "peet's"
+    - philz
+    - blue bottle
+    - dutch bros
+    - coffee
+    - cafe
+  Groceries:
+    - wholesome choice
+    - whole foods
+    - wholefds
+    - northgate market
+    - sprouts
+    - trader joe
+    - whole foods
+    - trader joe
+    - safeway
+    - ralphs
+    - albertsons
+    - gelson
+    - sprouts
+    - costco whs
+    - costco whse
+    - aldi
+    - vons
+    - pavilions
+    - grocery
+    - foods co
+  Food Delivery:
+    - doordash
+    - uber eats
+    - grubhub
+    - postmates
+    - caviar
+    - chowbus
+    - instacart
+  Work Meals: []
+    # Office cafeteria / company-subsidized food. Recurring tiny charges
+    # from the user's employer name signal this — add the employer's
+    # cafeteria descriptor as an override in expenses_config.yaml,
+    # not here. Different users have different employers.
+  Restaurants:
+    - restaurant
+    - bistro
+    - grill
+    - kitchen
+    - bbq
+    - sushi
+    - pizza
+    - taco
+    - burger
+    - "bar "
+    - tavern
+    - "pub "
+    - brewery
+    - eatery
+    - dining
+    - tgi friday
+    - tgi fridays
+    - jersey mike
+
+# ---------- Subscriptions & Software ----------
+Subscriptions & Software:
+  Phone:
+    - verizon wireless
+    - "att wireless"
+    - t-mobile
+    - tmobile
+    - sprint
+    - mint mobile
+    - google fi
+  Streaming / Media:
+    - netflix
+    - hulu
+    - spotify
+    - apple.com/bill
+    - itunes
+    - prime video
+    - youtube premium
+    - disney+
+    - hbo
+    - "max "
+    - paramount+
+    - peacock
+    - apple music
+    - tidal
+    - pandora
+  News / Publications / Books:
+    - nytimes
+    - new york times
+    - wsj
+    - wall street journal
+    - washington post
+    - economist
+    - financial times
+    - atlantic
+    - new yorker
+    - substack
+    - patreon
+    - kindle
+    - audible
+  Software / Tools:
+    - chatgpt
+    - openai
+    - anthropic
+    - claude
+    - perplexity
+    - github
+    - dropbox
+    - icloud
+    - microsoft
+    - office 365
+    - adobe
+    - figma
+    - notion
+    - 1password
+    - lastpass
+    - evernote
+    - linkedin premium
+    - linear.app
+    - squarespace
+    - sqsp
+    - zoom
+    - duolingo
+    - babbel
+
+# ---------- Health ----------
+Health:
+  Medical:
+    - cvs
+    - walgreens
+    - rite aid
+    - pharmacy
+    - pharma
+    - kaiser
+    - sutter
+    - hospital
+    - clinic
+    - dentist
+    - dental
+    - orthodontist
+    - optometr
+    - vision
+    - lenscraft
+    - eyemed
+    - medical
+    - doctor
+    - urgent care
+    - acupuncture
+    - chiropract
+    - therap
+    - psych
+    - counseling
+    - blue shield
+    - blue cross
+    - anthem
+    - cigna
+    - humana
+    - one medical
+    - forward
+    - zocdoc
+
+# ---------- Personal Care & Fitness ----------
+Personal Care & Fitness:
+  Fitness / Personal Care:
+    - pristinehydro
+    - pristine hydro
+    - lifetime fitness
+    - life time
+    - equinox
+    - crunch
+    - 24 hour fitness
+    - planet fitness
+    - ymca
+    - yoga
+    - pilates
+    - barre
+    - "spin "
+    - orangetheory
+    - classpass
+    - peloton
+    - strava
+    - massage
+    - spa
+    - nail
+    - salon
+    - barber
+    - haircut
+    - sephora
+    - ulta
+    - skinceuticals
+    - "ewc -"
+    - european wax
+
+# ---------- Sports & Hobbies ----------
+Sports & Hobbies:
+  Sports / Hobbies:
+    - bambulab
+    - bambu lab
+    - canyon bicycles
+    - "rei "
+    - "rei #"
+    - "rei.com"
+    - kuiu
+    - patagonia
+    - backcountry
+    - patagonia
+    - north face
+    - evo.com
+    - "dick's sporting"
+    - academy sports
+    - sports basement
+    - bike
+    - cycle
+    - "trek "
+    - specialized
+    - giro
+    - cannondale
+    - mountain
+    - surf
+    - climbing
+    - golf
+    - tennis
+    - hunting
+    - fishing
+    - camera
+    - b&h photo
+    - adorama
+    - bass pro
+
+# ---------- Entertainment ----------
+Entertainment:
+  Entertainment:
+    - "amc "
+    - "regal "
+    - cinemark
+    - movie
+    - theater
+    - theatre
+    - ticketmaster
+    - stubhub
+    - axs.com
+    - broadway
+    - museum
+    - concert
+    - comedy
+    - opera
+    - ballet
+    - live nation
+    - dave & buster
+    - topgolf
+    - bowl
+    - arcade
+    - casino
+
+# ---------- Pets ----------
+Pets:
+  Pets:
+    - petco
+    - petsmart
+    - chewy
+    - veterin
+    - "dog "
+    - "cat "
+    - "pet "
+
+# ---------- Shopping & Retail ----------
+Shopping & Retail:
+  Amazon:
+    - amazon
+    - amzn mktp
+    - amzn.com
+  Big Box:
+    - target
+    - walmart
+    - wal-mart
+    - wal mart
+    - "costco "
+    - costco.com
+    - costco
+    - "sam's club"
+    - "bj's whole"
+  Clothing:
+    - nordstrom
+    - macy
+    - bloomingdale
+    - neiman
+    - saks
+    - bergdorf
+    - net-a-porter
+    - matchesfashion
+    - zara
+    - uniqlo
+    - "gap "
+    - old navy
+    - banana republic
+    - j.crew
+    - jcrew
+    - nike
+    - adidas
+    - lululemon
+    - athleta
+    - alo yoga
+    - madewell
+    - everlane
+    - anthropologie
+    - urban outfitters
+    - brooks brothers
+    - mr porter
+    - shopbop
+    - marshalls
+    - tj maxx
+    - t.j.maxx
+    - tjmaxx
+    - ross dress
+    - nordstrom rack
+  Home Goods:
+    - ikea
+    - williams sonoma
+    - pottery barn
+    - west elm
+    - crate & barrel
+    - cb2
+    - restoration hardware
+    - "rh "
+    - room & board
+    - design within reach
+    - home depot
+    - "lowe's"
+    - lowes
+    - menards
+    - ace hardware
+    - floor and decor
+    - floor & decor
+  Electronics:
+    - best buy
+    - apple store
+    - apple.com
+    - bestbuy
+    - newegg
+    - micro center
+  Books:
+    - barnes & noble
+  Online Merchant:
+    - etsy
+    - shopify
+    - paypal
+    - venmo
+    - square
+    - stripe
+    - ebay
+
+# ---------- Home Services ----------
+Home Services:
+  Home Services:
+    - plumber
+    - plumbing
+    - electrician
+    - electrical
+    - hvac
+    - roofing
+    - carpenter
+    - landscap
+    - gardener
+    - cleaning
+    - housekeep
+    - "maid "
+    - pest control
+    - exterminator
+    - pool service
+    - handyman
+    - termite
+    - dry cleaner
+    - cleaners
+    - laundry
+
+# ---------- Professional Services ----------
+Professional Services:
+  Professional Services:
+    - lawyer
+    - attorney
+    - legal
+    - accountant
+    - "cpa "
+    - turbotax
+    - intuit
+    - quickbooks
+    - notary
+    - mailbox
+    - ups store
+    - fedex
+    - shipping
+  Medical Memberships:
+    - nejm
+    - massmedsoc
+
+# ---------- Insurance ----------
+Insurance:
+  Insurance:
+    - geico
+    - state farm
+    - progressive
+    - allstate
+    - "aaa "
+    - mercury insurance
+    - farmers insurance
+    - usaa
+    - pacific life
+    - lemonade
+    - wawanesa
+    - amica mutual
+    - amica.com
+    - travelers per ins
+    - travelers ins
+
+# ---------- Cash ----------
+# ATM withdrawals — opaque by definition. Surface separately so the user can
+# see how much cash is leaving the account without needing to track each $.
+Cash:
+  Cash:
+    - atm withdrawal
+    - cash withdrawal
+    - withdrawal
+    - cash app
+    - venmo cashout
+
+# ---------- Fees ----------
+Fees:
+  Credit Card Annual Fee:
+    - annual membership fee
+  Statement Credit:
+    - statement credit

@@ -1,0 +1,82 @@
+# Example consolidation config — adapt to the user's actual setup.
+# Run: python scripts/consolidate.py --config example_config.yaml
+
+# Each source ingests one export file with a known type.
+sources:
+  - name: Alex AppleCard
+    file: apple-ccard/Apple Card Transactions Apr 01 2025 - Apr 18 2026.csv
+    type: apple_card
+    cardholder_map:
+      "Alex Doe": Alex AppleCard
+      "Jordan Doe": Partner AppleCard
+
+  - name: Alex ChaseCard
+    file: Chase Transactions Mar 2025 - Apr 2026.csv
+    type: chase_card
+
+  - name: Joint Checking
+    file: Checking Transactions.csv
+    type: generic_checking
+    exclude_categories:
+      - Credit Card Payments
+      - Investment
+      - Income
+      - Taxes
+      - Rental Property
+
+# Bank-specific category mappings (apply BEFORE keyword matching)
+# Only used for sources whose Source name contains these patterns.
+source_category_maps:
+  AppleCard:
+    Restaurants:           [Food & Dining, Restaurants]
+    Grocery:               [Food & Dining, Groceries]
+    Gas:                   [Auto & Transport, Fuel]
+    Airlines:              [Travel, Airlines]
+    Hotels:                [Travel, Hotels]
+    Car-rentals:           [Travel, Car Rental]
+    Tolls:                 [Auto & Transport, Tolls]
+    Transportation:        [Auto & Transport, Transportation]
+    Govt-services-parking: [Auto & Transport, Parking / Govt]
+    Medical:               [Health, Medical]
+    Utilities:             [Utilities, Utilities]
+    Insurance:             [Insurance, Insurance]
+
+# User-confirmed one-off overrides (highest priority)
+overrides:
+  - description: "REI purchase 2025-12-04 was a gift, not personal gear"
+    match:
+      date: "12/04/2025"
+      description_contains: "rei"
+      amount: 415.94
+    category: Charity & Gifts
+    subcategory: Gifts
+
+# Rules to drop rows entirely (never appear in lifestyle ledger).
+# `kind` (optional, default 'other') sub-types the exclusion for clearer
+# audit trails. Recognised values: card_payoff, investment, income_tax,
+# internal_transfer, rental_operating, rental_escrow, business,
+# family_transfer, other.
+exclusions:
+  - description: "Work trip — employer-reimbursable hotel/airport charges"
+    kind: business
+    match:
+      date: ["07/10/2025", "07/11/2025"]
+      description_contains: ["hotel okura", "haneda"]
+
+  - description: "Rental property — landlord insurance"
+    kind: rental_operating
+    match:
+      description_contains: ["landlord insurance"]
+
+  - description: "Rental property — security deposit returned to former tenant"
+    kind: rental_escrow      # NOT a P&L expense — escrow round-trip
+    match:
+      description_contains: ["zelle payment to former tenant name"]
+
+# Time window: last_12_months (also accepts TTM as alias) | YTD | all
+time_window: last_12_months
+period_end: 2026-04-26
+
+# Taxonomy: 'default' uses bundled assets/default_taxonomy.yaml,
+# or specify a path to your own.
+taxonomy_file: default

@@ -1,0 +1,30 @@
+Transaction Date,Purchased By,Merchant,Description,Category,Type,Amount (USD)
+01/15/2025,Mike Chen,Whole Foods,WHOLE FOODS MARKET,Grocery,Purchase,185.43
+01/22/2025,Mike Chen,Starbucks,STARBUCKS COFFEE,Restaurants,Purchase,6.85
+02/03/2025,Mike Chen,Vail Resorts,VAIL RESORTS LIFT TICKET,Other,Purchase,289.0
+02/04/2025,Mike Chen,Mammoth Mtn Ski,MAMMOTH MTN SKI RENTAL,Other,Purchase,145.5
+02/05/2025,Mike Chen,Ski School,CREEKSIDE SKI SCHOOL,Other,Purchase,450.0
+03/12/2025,Mike Chen,Costco Gas,COSTCO GAS,Gas,Purchase,62.0
+04/15/2025,Mike Chen,Delta,DELTA AIR LINES,Airlines,Purchase,624.0
+04/16/2025,Mike Chen,Hilton,HILTON HONOLULU,Hotels,Purchase,892.0
+05/02/2025,Mike Chen,Nike,NIKE.COM,Shopping,Purchase,125.0
+06/14/2025,Mike Chen,Bambulab,US.STORE.BAMBULAB.COM,Shopping,Purchase,1200.0
+07/04/2025,Mike Chen,Whole Foods,WHOLE FOODS MARKET,Grocery,Purchase,212.5
+08/15/2025,Mike Chen,Starbucks,STARBUCKS COFFEE,Restaurants,Purchase,7.2
+09/01/2025,Mike Chen,Restaurant,SUSHI EATERY,Restaurants,Purchase,95.0
+10/10/2025,Mike Chen,DoorDash,DOORDASH,Restaurants,Purchase,54.3
+11/15/2025,Mike Chen,Bambulab,US.STORE.BAMBULAB.COM,Shopping,Purchase,1200.0
+12/20/2025,Mike Chen,Costco,COSTCO WHSE,Shopping,Purchase,340.0
+01/18/2025,Sarah Chen,Sephora,SEPHORA,Shopping,Purchase,148.0
+02/14/2025,Sarah Chen,Restaurant,KITCHEN BISTRO,Restaurants,Purchase,185.0
+03/22/2025,Sarah Chen,Yoga,YOGA STUDIO,Other,Purchase,165.0
+04/05/2025,Sarah Chen,Trader Joe's,TRADER JOE'S,Grocery,Purchase,87.45
+05/15/2025,Sarah Chen,Salon,SALON HAIR,Other,Purchase,225.0
+06/22/2025,Sarah Chen,Target,TARGET,Shopping,Purchase,142.0
+07/30/2025,Sarah Chen,Pegasus School,PEGASUS SCHOOL TUITION,Other,Purchase,2400.0
+08/15/2025,Sarah Chen,Camp James,CAMP JAMES SUMMER,Other,Purchase,1850.0
+09/05/2025,Sarah Chen,Whole Foods,WHOLE FOODS MARKET,Grocery,Purchase,165.3
+03/15/2025,Mike Chen,Vail Resorts,VAIL RESORTS,Other,Credit,-45.0
+06/15/2025,Mike Chen,DAILY CASH,DAILY CASH ADJUSTMENT,Other,Credit,2.4
+07/01/2025,Mike Chen,Apple Card Payment,ACH Deposit Internet Transfer,,Payment,-3500.0
+12/15/2025,Mike Chen,Bambulab,US.STORE.BAMBULAB.COM,Shopping,Credit,-1200.0
