@@ -1,0 +1,76 @@
+# Individual stock ticker → sector + region.
+#
+# Schema:
+#   <TICKER>: { sector, region, market_cap, [issuer] }
+#
+# Sectors follow the GICS 11-sector framework:
+#   communication_services | consumer_discretionary | consumer_staples |
+#   energy | financials | healthcare | industrials | materials |
+#   real_estate | technology | utilities
+#
+# Region: us | intl_developed | emerging
+# Market cap: large | mid | small  (cutoffs: $10B / $2B)
+#
+# Ships with common large-caps. User-specific additions live in their local
+# investment_analysis_config.yaml under `stock_overrides`.
+
+last_refresh: 2026-05-01
+
+# Technology
+AAPL: { sector: technology, region: us, market_cap: large, issuer: "Apple Inc." }
+MSFT: { sector: technology, region: us, market_cap: large, issuer: "Microsoft Corporation" }
+NVDA: { sector: technology, region: us, market_cap: large, issuer: "NVIDIA Corporation" }
+GOOGL: { sector: communication_services, region: us, market_cap: large, issuer: "Alphabet Inc." }
+GOOG: { sector: communication_services, region: us, market_cap: large, issuer: "Alphabet Inc." }
+META: { sector: communication_services, region: us, market_cap: large, issuer: "Meta Platforms" }
+ORCL: { sector: technology, region: us, market_cap: large, issuer: "Oracle Corporation" }
+CSCO: { sector: technology, region: us, market_cap: large, issuer: "Cisco Systems" }
+TXN: { sector: technology, region: us, market_cap: large, issuer: "Texas Instruments" }
+AMZN: { sector: consumer_discretionary, region: us, market_cap: large, issuer: "Amazon.com" }
+
+# Financials
+JPM: { sector: financials, region: us, market_cap: large, issuer: "JPMorgan Chase" }
+BAC: { sector: financials, region: us, market_cap: large, issuer: "Bank of America" }
+WFC: { sector: financials, region: us, market_cap: large, issuer: "Wells Fargo" }
+GS: { sector: financials, region: us, market_cap: large, issuer: "Goldman Sachs" }
+MS: { sector: financials, region: us, market_cap: large, issuer: "Morgan Stanley" }
+BRKB: { sector: financials, region: us, market_cap: large, issuer: "Berkshire Hathaway", note: "diversified conglomerate" }
+"BRK.B": { sector: financials, region: us, market_cap: large, issuer: "Berkshire Hathaway" }
+CME: { sector: financials, region: us, market_cap: large, issuer: "CME Group" }
+MET: { sector: financials, region: us, market_cap: large, issuer: "MetLife" }
+
+# Healthcare
+JNJ: { sector: healthcare, region: us, market_cap: large, issuer: "Johnson & Johnson" }
+UNH: { sector: healthcare, region: us, market_cap: large, issuer: "UnitedHealth Group" }
+ABBV: { sector: healthcare, region: us, market_cap: large, issuer: "AbbVie" }
+PFE: { sector: healthcare, region: us, market_cap: large, issuer: "Pfizer" }
+MRK: { sector: healthcare, region: us, market_cap: large, issuer: "Merck" }
+LLY: { sector: healthcare, region: us, market_cap: large, issuer: "Eli Lilly" }
+
+# Consumer discretionary / staples
+WMT: { sector: consumer_staples, region: us, market_cap: large, issuer: "Walmart" }
+HD: { sector: consumer_discretionary, region: us, market_cap: large, issuer: "Home Depot" }
+DIS: { sector: communication_services, region: us, market_cap: large, issuer: "Walt Disney" }
+CPB: { sector: consumer_staples, region: us, market_cap: large, issuer: "Campbell's" }
+CMCSA: { sector: communication_services, region: us, market_cap: large, issuer: "Comcast" }
+
+# Energy
+XOM: { sector: energy, region: us, market_cap: large, issuer: "ExxonMobil" }
+COP: { sector: energy, region: us, market_cap: large, issuer: "ConocoPhillips" }
+CVX: { sector: energy, region: us, market_cap: large, issuer: "Chevron" }
+
+# Industrials
+GD: { sector: industrials, region: us, market_cap: large, issuer: "General Dynamics" }
+
+# Utilities (often dividend-heavy, accumulated via DRIP)
+AEE: { sector: utilities, region: us, market_cap: large, issuer: "Ameren" }
+AWK: { sector: utilities, region: us, market_cap: large, issuer: "American Water Works" }
+DTE: { sector: utilities, region: us, market_cap: large, issuer: "DTE Energy" }
+ES: { sector: utilities, region: us, market_cap: large, issuer: "Eversource Energy" }
+FE: { sector: utilities, region: us, market_cap: large, issuer: "FirstEnergy" }
+NI: { sector: utilities, region: us, market_cap: large, issuer: "NiSource" }
+PPL: { sector: utilities, region: us, market_cap: large, issuer: "PPL Corp" }
+XEL: { sector: utilities, region: us, market_cap: large, issuer: "Xcel Energy" }
+
+# Real estate
+KIM: { sector: real_estate, region: us, market_cap: large, issuer: "Kimco Realty", note: "REIT" }

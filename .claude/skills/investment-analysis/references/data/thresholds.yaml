@@ -1,0 +1,106 @@
+# Threshold knobs for the investment-analysis skill.
+#
+# These are defaults. Users override per-portfolio in their local
+# investment_analysis_config.yaml under the `concentration_thresholds` and
+# `behavior` blocks.
+#
+# Every threshold here is used to FLAG facts, not to recommend action.
+# A position above a threshold is reported as "above the configured threshold of X%" —
+# it is never characterized as "too high" or "a problem."
+
+concentration_thresholds:
+
+  # Single-name exposure: any one ticker / company as % of investable.
+  # 5% is a conservative rule-of-thumb single-stock limit.
+  single_name: 0.05
+
+  # Single-sector exposure (computed through-the-fund, summing direct +
+  # implied weight in broad-market ETFs) as % of equity.
+  # 25% is roughly the maximum tech weight in a cap-weighted broad index;
+  # exceeding it suggests an explicit tilt beyond market weight.
+  single_sector: 0.25
+
+  # Single-issuer / single-employer exposure summed across ALL forms
+  # (direct equity + wrapper exposure + concentrated comp awards + ESPP)
+  # as % of investable.
+  # 25% is a common "comp + portfolio" rule for executives with employer-linked comp.
+  single_issuer: 0.25
+
+  # Single-fund exposure within any sleeve.
+  # 50% in one fund within a sleeve is concentrated manager / strategy risk.
+  single_fund_in_sleeve: 0.50
+
+  # Idle cash inside a single investment account as % of that account.
+  # 5% is a typical "unintentionally undeployed" signal.
+  idle_cash_in_account: 0.05
+
+  # Idle cash across all investment accounts as % of total investable.
+  idle_cash_total: 0.02
+
+  # Dollar threshold below which a single-name position is "dust" —
+  # typically DRIP residue, direct-indexing artifacts, or split fractions.
+  # Flagged for surfacing in anomalies, not for action.
+  dust_position_usd: 1000
+
+  # Geographic concentration thresholds (% of equity).
+  us_equity_max: 0.80                    # >80% of equity in US flagged
+  international_equity_min: 0.20         # <20% of equity in intl flagged
+
+  # Concentrated alts as % of total investable.
+  alt_concentrated_max: 0.30
+
+# Reconciliation tolerances.
+reconciliation:
+  # Per-statement: extracted sum vs statement-stated total.
+  # Both thresholds must be exceeded to flag.
+  per_statement:
+    absolute_usd: 1.00
+    relative_pct: 0.001               # 0.1%
+
+  # Per-account vs household balance-sheet spreadsheet.
+  # Looser because spreadsheet typically lags statements.
+  per_account_vs_sheet:
+    absolute_usd: 1000.00
+    relative_pct: 0.01                # 1%
+
+# Classification behavior.
+classify:
+  # How to handle a ticker not in registry/overrides/synonyms/CUSIP map.
+  # Options: prompt_and_persist | web_lookup | fail_loud
+  unknown_fund_behavior: prompt_and_persist
+
+  # Age in days after which a registry entry's `last_verified` is considered stale,
+  # and the fund's asset-class breakdown may have drifted.
+  stale_registry_warning_days: 365
+
+  # If true, individual-stock unknowns trigger a one-shot prompt with web-lookup option.
+  # If false, the stock is classified as us_equity with sector=unknown.
+  prompt_for_unknown_individual_stocks: true
+
+# Anomaly surfacing.
+anomalies:
+  # Below this ER, a fund is "low-cost" — not surfaced in fee anomalies.
+  notable_er_pct: 0.0075               # 0.75%
+
+  # Positions above this $ value with no cost basis are surfaced.
+  missing_cost_basis_usd: 10000
+
+# Vested vs unvested view defaults.
+views:
+  # Default for headline numbers in the report phase.
+  default_view: vested_only            # Options: vested_only | vested_plus_unvested
+
+  # Include primary residence in real-estate sleeve calculations.
+  # If false, primary is excluded from investable but shown in net-worth view.
+  include_primary_in_investable: false
+
+# Real estate liquidation-net default rates (used when methodology = liquidation_net
+# and the user hasn't supplied state-specific overrides).
+real_estate_liquidation:
+  selling_costs_pct: 0.06              # agent + closing + transfer tax
+  fed_ltcg_rate: 0.20
+  nii_surtax_rate: 0.038
+  default_state_marginal_rate: 0.05    # placeholder; user overrides per residence state
+  sec_121_exclusion_single: 250000
+  sec_121_exclusion_married: 500000
+  depreciation_recapture_rate: 0.25    # federal; applies only to investment use

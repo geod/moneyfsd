@@ -1,0 +1,369 @@
+# Curated ticker → asset class registry.
+#
+# Each entry follows this schema:
+#   <TICKER>:
+#     name: <fund name>
+#     category: <broad category>
+#     asset_classes: { <asset_class>: <weight 0.0-1.0>, ... }   # must sum to 1.0
+#     expense_ratio: <annual %>
+#     distribution_character: <qualified_dividend|ordinary|muni|mixed|...>
+#     index: <tracked index>                                    # ETFs only
+#     implied_sector_weights: { <sector>: <weight>, ... }       # broad funds only
+#     last_verified: <ISO date>
+#
+# Refresh annually — implied_sector_weights drift with index rebalancing.
+#
+# This file ships with the skill. User-specific additions go in the local
+# investment_analysis_config.yaml under `fund_overrides`.
+
+last_refresh: 2026-05-01
+
+# Common ETF cross-share-class synonyms — resolve at lookup time.
+synonyms:
+  VFIAX: VOO
+  VTSAX: VTI
+  FXAIX: VOO
+  FZROX: VTI
+
+# ---------------------------------------------------------------------------
+# US broad equity
+# ---------------------------------------------------------------------------
+
+VTI:
+  name: Vanguard Total Stock Market ETF
+  category: us_broad_equity
+  asset_classes: { us_equity: 1.0 }
+  expense_ratio: 0.0003
+  distribution_character: qualified_dividend
+  index: CRSP US Total Market
+  implied_sector_weights:
+    technology: 0.30
+    financials: 0.13
+    healthcare: 0.12
+    consumer_discretionary: 0.10
+    communication_services: 0.09
+    industrials: 0.08
+    consumer_staples: 0.06
+    energy: 0.04
+    real_estate: 0.03
+    utilities: 0.03
+    materials: 0.02
+
+VOO:
+  name: Vanguard S&P 500 ETF
+  category: us_large_cap
+  asset_classes: { us_equity: 1.0 }
+  expense_ratio: 0.0003
+  distribution_character: qualified_dividend
+  index: S&P 500
+  implied_sector_weights:
+    technology: 0.32
+    financials: 0.13
+    healthcare: 0.12
+    consumer_discretionary: 0.10
+    communication_services: 0.09
+    industrials: 0.08
+    consumer_staples: 0.06
+    energy: 0.04
+    real_estate: 0.02
+    utilities: 0.02
+    materials: 0.02
+
+ITOT:
+  name: iShares Core S&P Total US Stock Market ETF
+  category: us_broad_equity
+  asset_classes: { us_equity: 1.0 }
+  expense_ratio: 0.0003
+  distribution_character: qualified_dividend
+  index: S&P Total Market Index
+
+SCHB:
+  name: Schwab US Broad Market ETF
+  category: us_broad_equity
+  asset_classes: { us_equity: 1.0 }
+  expense_ratio: 0.0003
+  distribution_character: qualified_dividend
+  index: Dow Jones US Broad Stock Market
+
+VXF:
+  name: Vanguard Extended Market ETF
+  category: us_mid_small
+  asset_classes: { us_equity: 1.0 }
+  expense_ratio: 0.0006
+  distribution_character: qualified_dividend
+  index: S&P Completion Index
+
+VB:
+  name: Vanguard Small-Cap ETF
+  category: us_small_cap
+  asset_classes: { us_equity: 1.0 }
+  expense_ratio: 0.0005
+  distribution_character: qualified_dividend
+  index: CRSP US Small Cap
+
+VBR:
+  name: Vanguard Small-Cap Value ETF
+  category: us_small_value
+  asset_classes: { us_equity: 1.0 }
+  expense_ratio: 0.0007
+  distribution_character: qualified_dividend
+
+IWN:
+  name: iShares Russell 2000 Value ETF
+  category: us_small_value
+  asset_classes: { us_equity: 1.0 }
+  expense_ratio: 0.0024
+  distribution_character: qualified_dividend
+  index: Russell 2000 Value
+
+VOE:
+  name: Vanguard Mid-Cap Value ETF
+  category: us_mid_value
+  asset_classes: { us_equity: 1.0 }
+  expense_ratio: 0.0007
+  distribution_character: qualified_dividend
+
+VTV:
+  name: Vanguard Value ETF
+  category: us_large_value
+  asset_classes: { us_equity: 1.0 }
+  expense_ratio: 0.0004
+  distribution_character: qualified_dividend
+  index: CRSP US Large Cap Value
+
+SCHV:
+  name: Schwab US Large-Cap Value ETF
+  category: us_large_value
+  asset_classes: { us_equity: 1.0 }
+  expense_ratio: 0.0004
+  distribution_character: qualified_dividend
+
+VIG:
+  name: Vanguard Dividend Appreciation ETF
+  category: us_dividend
+  asset_classes: { us_equity: 1.0 }
+  expense_ratio: 0.0005
+  distribution_character: qualified_dividend
+
+SCHD:
+  name: Schwab US Dividend Equity ETF
+  category: us_dividend
+  asset_classes: { us_equity: 1.0 }
+  expense_ratio: 0.0006
+  distribution_character: qualified_dividend
+
+# ---------------------------------------------------------------------------
+# US sector / thematic
+# ---------------------------------------------------------------------------
+
+VGT:
+  name: Vanguard Information Technology ETF
+  category: us_sector
+  asset_classes: { us_equity: 1.0 }
+  expense_ratio: 0.0010
+  distribution_character: qualified_dividend
+  sector_tilt: technology
+  implied_sector_weights: { technology: 1.0 }
+
+# ---------------------------------------------------------------------------
+# International developed
+# ---------------------------------------------------------------------------
+
+VEA:
+  name: Vanguard FTSE Developed Markets ETF
+  category: intl_developed
+  asset_classes: { intl_dev_equity: 1.0 }
+  expense_ratio: 0.0006
+  distribution_character: qualified_dividend
+  index: FTSE Developed All Cap ex US
+
+SCHF:
+  name: Schwab International Equity ETF
+  category: intl_developed
+  asset_classes: { intl_dev_equity: 1.0 }
+  expense_ratio: 0.0006
+  distribution_character: qualified_dividend
+  index: FTSE Developed ex US
+
+IEFA:
+  name: iShares Core MSCI EAFE ETF
+  category: intl_developed
+  asset_classes: { intl_dev_equity: 1.0 }
+  expense_ratio: 0.0007
+  distribution_character: qualified_dividend
+  index: MSCI EAFE IMI
+
+# ---------------------------------------------------------------------------
+# Emerging markets
+# ---------------------------------------------------------------------------
+
+VWO:
+  name: Vanguard FTSE Emerging Markets ETF
+  category: emerging_markets
+  asset_classes: { intl_em_equity: 1.0 }
+  expense_ratio: 0.0007
+  distribution_character: qualified_dividend
+  index: FTSE Emerging Markets All Cap
+
+INDA:
+  name: iShares MSCI India ETF
+  category: emerging_markets_single_country
+  asset_classes: { intl_em_equity: 1.0 }
+  expense_ratio: 0.0062
+  distribution_character: qualified_dividend
+  index: MSCI India
+
+# ---------------------------------------------------------------------------
+# Total international (combined dev + EM)
+# ---------------------------------------------------------------------------
+
+VXUS:
+  name: Vanguard Total International Stock ETF
+  category: intl_total
+  asset_classes: { intl_dev_equity: 0.73, intl_em_equity: 0.27 }
+  expense_ratio: 0.0007
+  distribution_character: qualified_dividend
+  index: FTSE Global All Cap ex US
+
+IXUS:
+  name: iShares Core MSCI Total International ETF
+  category: intl_total
+  asset_classes: { intl_dev_equity: 0.74, intl_em_equity: 0.26 }
+  expense_ratio: 0.0007
+  distribution_character: qualified_dividend
+  index: MSCI ACWI ex USA IMI
+
+# ---------------------------------------------------------------------------
+# US bonds — aggregate / treasury
+# ---------------------------------------------------------------------------
+
+BND:
+  name: Vanguard Total Bond Market ETF
+  category: us_agg_bond
+  asset_classes: { us_bonds: 1.0 }
+  expense_ratio: 0.0003
+  distribution_character: ordinary
+  index: Bloomberg US Aggregate Float Adjusted
+
+AGG:
+  name: iShares Core US Aggregate Bond ETF
+  category: us_agg_bond
+  asset_classes: { us_bonds: 1.0 }
+  expense_ratio: 0.0003
+  distribution_character: ordinary
+  index: Bloomberg US Aggregate
+
+SCHZ:
+  name: Schwab US Aggregate Bond ETF
+  category: us_agg_bond
+  asset_classes: { us_bonds: 1.0 }
+  expense_ratio: 0.0003
+  distribution_character: ordinary
+  index: Bloomberg US Aggregate
+
+SCHP:
+  name: Schwab US TIPS ETF
+  category: us_tips
+  asset_classes: { us_bonds: 1.0 }
+  expense_ratio: 0.0004
+  distribution_character: ordinary
+  index: Bloomberg US TIPS
+
+VTIP:
+  name: Vanguard Short-Term Inflation-Protected Securities ETF
+  category: us_tips_short
+  asset_classes: { us_bonds: 1.0 }
+  expense_ratio: 0.0004
+  distribution_character: ordinary
+
+# ---------------------------------------------------------------------------
+# Municipal bonds
+# ---------------------------------------------------------------------------
+
+VTEB:
+  name: Vanguard Tax-Exempt Bond ETF
+  category: us_muni
+  asset_classes: { us_bonds: 1.0 }
+  expense_ratio: 0.0005
+  distribution_character: muni
+  index: S&P National AMT-Free Muni Bond
+
+MUB:
+  name: iShares National Muni Bond ETF
+  category: us_muni
+  asset_classes: { us_bonds: 1.0 }
+  expense_ratio: 0.0005
+  distribution_character: muni
+
+CMF:
+  name: iShares California Muni Bond ETF
+  category: us_muni_state
+  asset_classes: { us_bonds: 1.0 }
+  expense_ratio: 0.0025
+  distribution_character: muni
+  state: CA
+
+# ---------------------------------------------------------------------------
+# International / EM bonds
+# ---------------------------------------------------------------------------
+
+EMB:
+  name: iShares J.P. Morgan USD Emerging Markets Bond ETF
+  category: em_bond_usd
+  asset_classes: { intl_bonds: 1.0 }
+  expense_ratio: 0.0039
+  distribution_character: ordinary
+
+BNDX:
+  name: Vanguard Total International Bond ETF
+  category: intl_bond_hedged
+  asset_classes: { intl_bonds: 1.0 }
+  expense_ratio: 0.0007
+  distribution_character: ordinary
+
+# ---------------------------------------------------------------------------
+# Multi-sector / active bond
+# ---------------------------------------------------------------------------
+
+PIMIX:
+  name: PIMCO Income Institutional
+  category: multi_sector_bond
+  asset_classes: { us_bonds: 0.75, intl_bonds: 0.20, cash: 0.05 }
+  expense_ratio: 0.0062
+  distribution_character: ordinary
+  last_verified: 2026-04-01
+
+DODIX:
+  name: Dodge & Cox Income Fund
+  category: multi_sector_bond
+  asset_classes: { us_bonds: 0.95, intl_bonds: 0.05 }
+  expense_ratio: 0.0041
+  distribution_character: ordinary
+
+# ---------------------------------------------------------------------------
+# Target-date funds (sample — there are many; users add their own to fund_overrides)
+# ---------------------------------------------------------------------------
+
+PIMCO_REALPATH_2050:
+  name: PIMCO RealPath Blend 2050 Institutional
+  category: target_date
+  target_year: 2050
+  asset_classes:
+    us_equity: 0.60
+    intl_dev_equity: 0.15
+    intl_em_equity: 0.07
+    us_bonds: 0.10
+    intl_bonds: 0.05
+    cash: 0.03
+  expense_ratio: 0.0020
+  distribution_character: mixed
+  last_verified: 2026-04-01
+
+# ---------------------------------------------------------------------------
+# CUSIP fallbacks for common mutual funds in retirement plans
+# ---------------------------------------------------------------------------
+
+cusip_map:
+  # Maps a CUSIP found on a statement to a canonical registry key.
+  # Add as users encounter them.
+  "72200Q207": PIMIX     # PIMCO Income Institutional, example

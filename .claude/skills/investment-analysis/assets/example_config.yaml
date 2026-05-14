@@ -1,0 +1,116 @@
+# Example investment_analysis_config.yaml
+# Generic placeholders only — no real names, employers, or property identifiers.
+# When this skill runs against a user's real data, it generates a config in
+# their working directory with their actual values. That file stays local.
+
+household:
+  members:
+    - name: primary
+    - name: spouse
+
+accounts:
+  # Manual annotation when account type inference is ambiguous or wrong.
+  # `file_match` is a glob against filenames in the input folder.
+  - file_match: "401k*.pdf"
+    type: qualified_401k
+    owner: primary
+    roth_traditional_split: { traditional: 1.0, roth: 0.0 }   # if known
+
+  - file_match: "deferred_comp*.pdf"
+    type: nqdc
+    owner: primary
+    employer: employer_a
+    distribution_schedule: { start: 2030, form: installments_5yr }
+    tax_haircut: 0.40       # user-applied haircut for "net asset" view
+
+  - file_match: "pcra_inside_401k*.pdf"
+    nested_inside: "401k*.pdf"   # avoid double-counting
+
+  - file_match: "ira*.pdf"
+    type: traditional_ira
+    owner: primary
+
+  - file_match: "hsa*.pdf"
+    type: hsa
+    owner: primary
+
+  - file_match: "529*.pdf"
+    type: 529
+    owner: primary
+    beneficiary: child_a
+
+# Employer registry — referenced by `employer:` field on accounts and manual holdings.
+# This is the only place real employer names should appear, and only when the user
+# enters them locally.
+employers:
+  employer_a:
+    name: "<user-provided>"
+    is_current: true
+  employer_b:
+    name: "<user-provided>"
+    is_current: false
+
+# Non-statement assets, named generically.
+manual_holdings:
+  - account: concentrated_alt_1
+    type: alt_concentrated
+    owner: primary
+    employer: employer_a
+    value: 0
+    vesting: vested
+    notes: "Generic description"
+
+  - account: ltip_award_1
+    type: ltip
+    owner: primary
+    employer: employer_a
+    value: 0
+    tax_haircut: 0.40
+    vested: false
+    vest_date: 2027-03
+
+  - account: crypto_holdings
+    type: crypto
+    owner: primary
+    value: 0
+    assets:
+      - { ticker: BTC, value: 0 }
+
+real_estate:
+  - name: primary_residence
+    market_value: 0
+    mortgage: 0
+    methodology: carrying        # or: liquidation_net
+    use: primary
+
+  - name: rental_property_1
+    market_value: 0
+    mortgage: 0
+    methodology: carrying
+    use: investment
+
+  - name: rental_property_2
+    market_value: 0
+    mortgage: 0
+    methodology: carrying
+    use: investment
+
+# Fund classification overrides — when the curated registry is wrong or missing.
+# Fund tickers are public market data and are fine to keep in template.
+fund_overrides:
+  PIMIX: { us_bonds: 0.75, intl_bonds: 0.20, cash: 0.05 }
+
+# Threshold knobs for concentration analysis. Surfaces as facts, not problems.
+concentration_thresholds:
+  single_name: 0.05            # 5% of investable
+  single_sector: 0.25          # 25% of equity
+  single_issuer: 0.25          # 25% of total (incl. wages + comp + holdings of one firm)
+  single_fund_in_sleeve: 0.50  # 50% of any sleeve in one fund
+  idle_cash_in_account: 0.05   # 5% of an account's value
+  idle_cash_total: 0.02        # 2% of investable
+  dust_position: 1000          # single-name positions under $1k flagged as dust
+
+# Things to exclude from investable totals (but track separately if useful).
+exclusions:
+  - cars
+  - 529                        # education accounts — typically not counted in net worth

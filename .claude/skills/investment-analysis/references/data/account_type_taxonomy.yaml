@@ -1,0 +1,240 @@
+# Canonical account types + inference heuristics.
+#
+# This is the authoritative list of account_type values the skill uses.
+# Adding a new type means updating this file + threading it through
+# classify and report (typically the asset-class mapping and the
+# tax-location matrix headers).
+
+types:
+
+  # ---------------------------------------------------------------------
+  # Taxable
+  # ---------------------------------------------------------------------
+  taxable_brokerage:
+    description: "Individual or joint taxable brokerage account"
+    tax_treatment: taxable
+    income_tax_at: ongoing            # taxes due on distributions / sales
+    contribution_limit: null
+    distribution_form: ad_hoc
+    rollover_eligible: false
+    wrapper_credit_risk: false
+
+  # ---------------------------------------------------------------------
+  # Qualified retirement
+  # ---------------------------------------------------------------------
+  qualified_401k:
+    description: "401(k) — pre-tax / traditional contributions"
+    tax_treatment: tax_deferred
+    income_tax_at: distribution
+    rollover_eligible: true
+    wrapper_credit_risk: false
+
+  roth_401k:
+    description: "Roth 401(k) — after-tax contributions, tax-free growth"
+    tax_treatment: tax_free
+    income_tax_at: never
+    rollover_eligible: true
+
+  qualified_403b:
+    description: "403(b) — tax-sheltered annuity (typically nonprofit employees)"
+    tax_treatment: tax_deferred
+    income_tax_at: distribution
+    rollover_eligible: true
+
+  qualified_457:
+    description: "457(b) — governmental deferred compensation"
+    tax_treatment: tax_deferred
+    income_tax_at: distribution
+    rollover_eligible: true   # for governmental 457(b); private 457(b) limited
+
+  qualified_pcra:
+    description: "Self-directed brokerage sleeve inside a qualified plan (trustee-held)"
+    tax_treatment: tax_deferred
+    income_tax_at: distribution
+    rollover_eligible: true
+    parent_required: true
+
+  traditional_ira:
+    description: "Traditional / rollover IRA"
+    tax_treatment: tax_deferred
+    income_tax_at: distribution
+    rollover_eligible: true
+
+  roth_ira:
+    description: "Roth IRA"
+    tax_treatment: tax_free
+    income_tax_at: never
+    rollover_eligible: true
+
+  sep_ira:
+    description: "Simplified Employee Pension IRA"
+    tax_treatment: tax_deferred
+    income_tax_at: distribution
+    rollover_eligible: true
+
+  # ---------------------------------------------------------------------
+  # Nonqualified (employer-linked, credit-risky)
+  # ---------------------------------------------------------------------
+  nqdc:
+    description: "Nonqualified Deferred Compensation Plan"
+    tax_treatment: tax_deferred
+    income_tax_at: distribution
+    distribution_form: per_election           # lump or installments per pre-elected schedule
+    rollover_eligible: false                  # NQDC cannot roll over
+    wrapper_credit_risk: true                 # assets are general assets of employer
+    notes: "Holdings inside are NOT employer credit risk individually; the wrapper itself is."
+
+  nqdc_pcra:
+    description: "PCRA sleeve inside an NQDC plan (custodian-held)"
+    tax_treatment: tax_deferred
+    income_tax_at: distribution
+    rollover_eligible: false
+    wrapper_credit_risk: true
+    parent_required: true
+
+  ltip:
+    description: "Long-Term Incentive Plan award — typically multi-year vesting"
+    tax_treatment: tax_deferred
+    income_tax_at: vesting
+    rollover_eligible: false
+    wrapper_credit_risk: true
+    typically_vested: false
+
+  rsu_award:
+    description: "Restricted Stock Unit award"
+    tax_treatment: ordinary_at_vesting
+    income_tax_at: vesting
+    rollover_eligible: false
+    typically_vested: false
+
+  espp:
+    description: "Employee Stock Purchase Plan holdings"
+    tax_treatment: taxable                    # qualified ESPP has special rules; treat as taxable for safety
+    income_tax_at: ongoing
+    rollover_eligible: false
+
+  alt_concentrated:
+    description: "Concentrated alternative comp (M Units, profit units, partnership stakes)"
+    tax_treatment: tax_deferred_or_special
+    income_tax_at: distribution_or_realization
+    rollover_eligible: false
+    wrapper_credit_risk: variable             # depends on instrument structure
+
+  # ---------------------------------------------------------------------
+  # Pensions
+  # ---------------------------------------------------------------------
+  pension_db:
+    description: "Defined benefit pension"
+    tax_treatment: tax_deferred
+    income_tax_at: distribution
+    rollover_eligible: variable               # sometimes lump-sum optional
+    income_stream: true
+
+  pension_cb:
+    description: "Cash balance pension"
+    tax_treatment: tax_deferred
+    income_tax_at: distribution
+    rollover_eligible: true
+
+  pension_unknown:
+    description: "Pension of unspecified DB/CB form"
+    tax_treatment: tax_deferred
+    income_tax_at: distribution
+    rollover_eligible: variable
+    flag_for_user: true
+
+  # ---------------------------------------------------------------------
+  # Tax-advantaged special purpose
+  # ---------------------------------------------------------------------
+  hsa:
+    description: "Health Savings Account"
+    tax_treatment: triple_tax_advantaged
+    income_tax_at: never_for_qualified_medical
+    rollover_eligible: true
+
+  "529":
+    description: "529 College Savings Plan"
+    tax_treatment: tax_free_for_qualified_education
+    income_tax_at: never_for_qualified
+    rollover_eligible: variable               # 529-to-Roth rules under SECURE 2.0
+
+  # ---------------------------------------------------------------------
+  # Other
+  # ---------------------------------------------------------------------
+  cash_savings:
+    description: "Bank savings (separate from operational checking)"
+    tax_treatment: taxable
+    income_tax_at: ongoing
+
+  real_estate:
+    description: "Investment or primary real estate"
+    tax_treatment: special
+    income_tax_at: sale
+
+  crypto:
+    description: "Cryptocurrency holdings"
+    tax_treatment: taxable
+    income_tax_at: realization
+
+  direct_holding:
+    description: "Direct security holding outside any wrapper"
+    tax_treatment: taxable
+
+  unknown:
+    description: "Account type could not be inferred — needs user input"
+    flag_for_user: true
+
+
+# Inference heuristics — applied in priority order.
+# Each entry is a list of substring signals to look for in the statement first-page text.
+inference_priority:
+  # Priority is encoded in list order — earlier wins.
+
+  - type: roth_ira
+    signals: ["Roth IRA", "Roth Individual Retirement"]
+
+  - type: traditional_ira
+    signals: ["Traditional IRA", "Rollover IRA", "Traditional Individual Retirement"]
+
+  - type: hsa
+    signals: ["Health Savings Account", "HSA"]
+
+  - type: "529"
+    signals: ["529 College Savings", "529 Plan", "ScholarShare"]
+
+  - type: roth_401k
+    signals: ["Roth 401(k)", "Roth 401K"]
+
+  - type: qualified_401k
+    signals: ["401(k) Savings", "401(k) Profit Sharing", "401(K) PLAN", "401K Retirement"]
+
+  - type: qualified_403b
+    signals: ["403(b) Tax-Sheltered", "403(b)(7)", "403B"]
+
+  - type: qualified_457
+    signals: ["457(b) Deferred Compensation"]
+
+  - type: nqdc
+    signals: ["Executive Deferred Compensation", "Nonqualified Deferred Comp", "EXEC DEF COMP"]
+
+  - type: pension_db
+    signals: ["Defined Benefit Pension", "Final Average Pay"]
+
+  - type: pension_cb
+    signals: ["Cash Balance Plan", "Cash Balance Pension"]
+
+  - type: pension_unknown
+    signals: ["Pension Plan", "Retirement Pension"]
+
+  - type: pcra_pending
+    signals: ["Personal Choice Retirement Account", "PCRA", "BrokerageLink"]
+    notes: "PCRA detected but trustee/custodian distinction needs to be resolved later"
+
+  - type: taxable_brokerage
+    signals: ["Brokerage Account"]
+    notes: "Lowest-priority fingerprint — many statements share this phrase"
+
+# Trustee-vs-custodian secondary lookup (applies to pcra_pending matches above).
+trustee_disambiguation:
+  qualified_pcra: ["Trust Bank TTEE", "Trust Bank, TTEE", "TTEE"]
+  nqdc_pcra: ["Trust Bank CUST", "Trust Bank, CUST", "CUST"]

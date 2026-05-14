@@ -1,0 +1,82 @@
+# Default distribution character per fund category / asset class.
+#
+# When classify.py resolves a holding's asset class, it also tags the holding's
+# income with one of these characters. The character feeds the tax-location
+# audit + income map in the report phase.
+#
+# Characters:
+#   qualified_dividend     — long-term capital gains rates (in taxable accounts)
+#   ordinary               — taxed at marginal income rates
+#   muni                   — federal income-tax-exempt (state-tax-exempt if in-state)
+#   return_of_capital      — reduces cost basis until basis = 0; then capital gain
+#   mixed                  — multi-character fund (e.g., target-date)
+#   none                   — does not generate distributable income
+#   unknown                — not characterized
+
+# Default per fund category (categories defined in fund_asset_class_map.yaml).
+defaults_by_category:
+  us_broad_equity: qualified_dividend
+  us_large_cap: qualified_dividend
+  us_large_value: qualified_dividend
+  us_mid_small: qualified_dividend
+  us_mid_value: qualified_dividend
+  us_small_cap: qualified_dividend
+  us_small_value: qualified_dividend
+  us_dividend: qualified_dividend
+  us_sector: qualified_dividend
+  intl_developed: qualified_dividend          # foreign tax credit eligible when held in taxable
+  intl_total: qualified_dividend
+  emerging_markets: qualified_dividend
+  emerging_markets_single_country: qualified_dividend
+  us_agg_bond: ordinary
+  us_tips: ordinary                          # inflation accrual taxable annually
+  us_tips_short: ordinary
+  us_muni: muni
+  us_muni_state: muni
+  em_bond_usd: ordinary
+  intl_bond_hedged: ordinary
+  multi_sector_bond: ordinary
+  target_date: mixed
+  us_reit_etf: mixed                         # mostly ordinary, some qualified, some ROC
+  individual_reit: ordinary
+  mlp: return_of_capital                     # K-1 territory; flag for special handling
+  individual_stock_common: qualified_dividend
+  preferred_stock: qualified_dividend        # most are; verify
+  money_market: ordinary
+  cash_sweep: ordinary
+
+# Defaults by account type — overrides the category-level default when the
+# wrapper changes the character of distributions.
+overrides_by_account_type:
+  qualified_401k:
+    # Distributions are taxed as ordinary regardless of underlying character
+    distribution_at_payout: ordinary
+  roth_401k:
+    distribution_at_payout: none             # tax-free
+  traditional_ira:
+    distribution_at_payout: ordinary
+  roth_ira:
+    distribution_at_payout: none
+  nqdc:
+    distribution_at_payout: ordinary         # 100% ordinary at distribution
+  nqdc_pcra:
+    distribution_at_payout: ordinary
+  ltip:
+    distribution_at_payout: ordinary
+  rsu_award:
+    distribution_at_payout: ordinary
+  espp:
+    # ESPP has ordinary + capital gain treatment depending on disqualifying disposition;
+    # default to mixed and flag for user review
+    distribution_at_payout: mixed
+  alt_concentrated:
+    distribution_at_payout: ordinary
+  hsa:
+    distribution_at_payout: none             # for qualified medical
+  "529":
+    distribution_at_payout: none             # for qualified education
+
+# Note: distribution_at_payout reflects what the user actually owes when they
+# pull money out of the wrapper. The original character (from defaults_by_category)
+# still matters for taxable accounts and for understanding what's economically
+# happening inside the account.
