@@ -124,8 +124,48 @@ def chart_allocation_pie(df: pd.DataFrame, out_path: Path) -> None:
             ha=ha, va="center", fontsize=10,
             arrowprops=dict(arrowstyle="-", color="#888", linewidth=0.8),
         )
-    ax.set_title("Sleeve Allocation", fontfamily="Georgia", fontsize=14, fontweight="bold", pad=20)
+    ax.set_title("Asset Category Allocation", fontfamily="Georgia", fontsize=14, fontweight="bold", pad=20)
     ax.text(0, -1.3, f"Total investable: ${total:,.0f}", ha="center", fontsize=10, color="#444")
+    fig.savefig(out_path, bbox_inches="tight", facecolor=CREAM)
+    plt.close(fig)
+
+
+def chart_account_pie(df: pd.DataFrame, out_path: Path) -> None:
+    """Pie chart of $ by account. Color reflects the account's dominant sleeve
+    for visual consistency with the sleeve pie."""
+    df = df.copy()
+    df["sleeve"] = df["asset_class"].map(SLEEVE_MAP).fillna("unknown")
+    by_acct = df.groupby("account")["weighted_value_gross"].sum().sort_values(ascending=False)
+    # Pick a representative sleeve per account (the largest one) for coloring
+    acct_sleeve = (df.groupby(["account", "sleeve"])["weighted_value_gross"].sum()
+                       .reset_index()
+                       .sort_values("weighted_value_gross", ascending=False)
+                       .drop_duplicates("account")
+                       .set_index("account")["sleeve"]
+                       .to_dict())
+    fig, ax = setup_fig(figsize=(10, 8))
+    colors = [SLEEVE_COLOR.get(acct_sleeve.get(a, "unknown"), "#888") for a in by_acct.index]
+    wedges, _ = ax.pie(
+        by_acct.values, colors=colors, startangle=90, counterclock=False,
+        wedgeprops=dict(linewidth=2, edgecolor="white"),
+    )
+    total = by_acct.sum()
+    for i, w in enumerate(wedges):
+        ang = (w.theta2 + w.theta1) / 2
+        x = math.cos(math.radians(ang))
+        y = math.sin(math.radians(ang))
+        ha = "left" if x >= 0 else "right"
+        ax.annotate(
+            f"{by_acct.index[i]}\n${by_acct.values[i]:,.0f} ({by_acct.values[i]/total:.0%})",
+            xy=(x*0.95, y*0.95),
+            xytext=(1.3*x, 1.15*y),
+            ha=ha, va="center", fontsize=10,
+            arrowprops=dict(arrowstyle="-", color="#888", linewidth=0.8),
+        )
+    ax.set_title("By Account", fontfamily="Georgia", fontsize=14,
+                  fontweight="bold", pad=20)
+    ax.text(0, -1.3, f"Color = dominant asset category", ha="center",
+            fontsize=9, color="#666", style="italic")
     fig.savefig(out_path, bbox_inches="tight", facecolor=CREAM)
     plt.close(fig)
 
@@ -257,15 +297,20 @@ def main() -> int:
     ap.add_argument("work_folder", type=Path)
     args = ap.parse_args()
 
-    classified_path = args.work_folder / "positions_classified.csv"
+    # Intermediates and chart outputs live in .analysis/ subfolder
+    io_dir = args.work_folder if args.work_folder.name == ".analysis" else args.work_folder / ".analysis"
+    io_dir.mkdir(exist_ok=True)
+
+    classified_path = io_dir / "positions_classified.csv"
     if not classified_path.is_file():
         print(f"error: {classified_path} not found", file=sys.stderr)
         return 2
 
     df = pd.read_csv(classified_path)
 
-    out_dir = args.work_folder
+    out_dir = io_dir
     chart_allocation_pie(df, out_dir / "chart_allocation_pie.png")
+    chart_account_pie(df, out_dir / "chart_account_pie.png")
     chart_asset_class_bars(df, out_dir / "chart_asset_class_bars.png")
     chart_concentration_heat(df, out_dir / "chart_concentration_heat.png")
     # tax-location chart uses inline mapping to avoid cross-script imports

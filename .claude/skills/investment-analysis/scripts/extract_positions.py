@@ -670,7 +670,11 @@ def main() -> int:
         with args.config.open() as f:
             config = yaml.safe_load(f) or {}
 
-    output_dir = args.output or args.input_folder
+    # All intermediate artifacts go into a .analysis/ subfolder inside the
+    # input folder, keeping the user's source statements + final deliverables
+    # at the root.
+    output_dir = args.output or (args.input_folder / ".analysis")
+    output_dir.mkdir(exist_ok=True)
     result = process_folder(args.input_folder, config)
     write_outputs(result, output_dir)
 

@@ -1,0 +1,35 @@
+# Synthetic fixture — PCRA inside a qualified 401(k) plan.
+# Note the TTEE (Trustee) suffix — this is what distinguishes qualified-plan
+# PCRA from NQDC PCRA (which uses CUST). Account numbers masked, names generic.
+
+Schwab Personal Choice Retirement Account® (PCRA) of
+Charles Schwab Trust Bank TTEE
+AccountNumber StatementPeriod
+THE EMPLOYER A 401(K) PLAN
+FBO PRIMARY HOLDER 9876-5432 March1-31,2026
+
+Account Summary
+EndingAccountValueasof03/31 BeginningAccountValueasof03/01
+$190,349.41 $181,131.47
+
+Positions - Mutual Funds
+%of
+Symbol Description Quantity Price($) Market Value($) CostBasis($) UnrealizedGain/(Loss)($) Acct
+PIMIX PIMCOINCOMEINSTL 6603.5540 10.78000 71,186.31 71,531.33 (345.02) 37%
+TotalMutualFunds $71,186.31 $71,531.33 ($345.02) 37%
+
+Positions - Exchange Traded Funds
+Unrealized Est. Est.Annual %of
+Symbol Description Quantity Price($) Market Value($) CostBasis($) Gain/(Loss)($) Yield Income($) Acct
+VTI VANGUARDTOTALSTOCK 117.6645 320.81000 37,747.95 28,595.69 9,152.26 1.24% 469.81 20%
+TotalExchangeTradedFunds $37,747.95 $28,595.69 $9,152.26 $469.81 20%
+
+Cash and Cash Investments
+Beginning Ending ChangeinPeriod Pending/Unsettled Interest/ %of
+Type Symbol Description Quantity Price($) Balance($) Balance($) Balance($) Cash($) YieldRate Acct
+BankSweep CHARLESSCHWAB 57,384.62 70,808.13 13,423.51 0.01% 37%
+TotalCashandCashInvestments $57,384.62 $70,808.13 $13,423.51 37%
+
+Transactions - Summary
+BeginningCash*asof03/01 + Deposits + Withdrawals + Purchases + Sales/Redemptions + Dividends/Interest + Expenses = EndingCash*asof03/31
+$57,384.62 $13,423.04 $0.00 ($444.63) $0.00 $445.10 $0.00 $70,808.13

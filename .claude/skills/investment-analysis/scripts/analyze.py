@@ -524,7 +524,11 @@ def main() -> int:
                     help="Defaults to <skill_dir>/references/data/thresholds.yaml")
     args = ap.parse_args()
 
-    classified_path = args.work_folder / "positions_classified.csv"
+    # Intermediates live in .analysis/ subfolder
+    io_dir = args.work_folder if args.work_folder.name == ".analysis" else args.work_folder / ".analysis"
+    io_dir.mkdir(exist_ok=True)
+
+    classified_path = io_dir / "positions_classified.csv"
     if not classified_path.is_file():
         print(f"error: {classified_path} not found", file=sys.stderr)
         return 2
@@ -540,22 +544,22 @@ def main() -> int:
     if user_ct:
         thresholds.setdefault("concentration_thresholds", {}).update(user_ct)
 
-    summary = write_allocation(df, args.work_folder / "Allocation.csv")
-    write_concentration(df, thresholds, args.work_folder / "Concentration.md")
-    write_tax_location(df, args.work_folder / "TaxLocation.md")
-    write_fees(df, thresholds, args.work_folder / "Fees.csv")
-    write_income(df, args.work_folder / "Income.csv")
-    write_anomalies(df, thresholds, args.work_folder / "Anomalies.md")
+    summary = write_allocation(df, io_dir / "Allocation.csv")
+    write_concentration(df, thresholds, io_dir / "Concentration.md")
+    write_tax_location(df, io_dir / "TaxLocation.md")
+    write_fees(df, thresholds, io_dir / "Fees.csv")
+    write_income(df, io_dir / "Income.csv")
+    write_anomalies(df, thresholds, io_dir / "Anomalies.md")
 
     # Stash the summary for generate_report to pick up
-    (args.work_folder / "_analyze_summary.json").write_text(json.dumps(summary, default=str, indent=2))
+    (io_dir / "_analyze_summary.json").write_text(json.dumps(summary, default=str, indent=2))
 
     print("Analysis complete.")
     print(f"  Total investable (gross): {fmt_money(summary['total_gross'])}")
     print(f"  Total investable (net):   {fmt_money(summary['total_net'])}")
     print("Output:")
     for f in ["Allocation.csv", "Concentration.md", "TaxLocation.md", "Fees.csv", "Income.csv", "Anomalies.md"]:
-        print(f"  {args.work_folder / f}")
+        print(f"  {io_dir / f}")
     return 0
 
 

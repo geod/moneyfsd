@@ -85,7 +85,7 @@ End every phase by hinting at what's next, in plain language. Never name the pha
 | 2 → 3 | *(silent — runs inside the script)* |
 | 3 → 4 | *"Consolidated. [N] positions across [M] accounts, totalling $X.XM. Anything obviously missing or wrong before I classify?"* |
 | 4 → 5 | *"Classification done. [N] of [M] holdings mapped to an asset class. [K] flagged for one-shot review — quick decision on those?"* |
-| 5 → done | *"Analysis written. Position ledger, allocation breakdown, concentration map, tax-location audit, and charts in [folder]. Ask if you want to drill into any sleeve, holding, or anomaly."* |
+| 5 → done | *"Report written — `Investment Analysis Report.md` walks through how much you have, your asset mix, what you own, where you're concentrated, where things sit tax-wise, fees, and anomalies — with the key charts inline and companion CSV/MD drill-downs in `.analysis/`. Would you like to start building a financial plan from here?"* |
 
 **Banned vocabulary in user-facing copy:** "Phase 3," "Phase 4," "the gate," "termination signal," "phase transition." These are agent terms.
 
@@ -125,7 +125,7 @@ Read the prior config and prior ledger *before* asking any question. Don't re-as
 
 The right second-visit conversation is short:
 1. Re-run ingestion + consolidation against the new statements.
-2. Surface deltas vs the prior ledger (new positions, removed positions, $-value changes at the holding and sleeve level).
+2. Surface deltas vs the prior ledger (new positions, removed positions, $-value changes at the holding and asset-category level).
 3. Surface any *new* unknowns / anomalies that didn't exist last time.
 4. Refresh charts and commentary.
 5. Stop.
@@ -258,23 +258,29 @@ Read `references/report.md`. Standard outputs:
 ### A. Allocation breakdown (`Allocation.csv`, `chart_allocation.png`)
 
 Through-the-fund roll-up across the whole portfolio:
-- Sleeve totals: equity / fixed income / cash / real assets / alternatives / crypto
+- Asset-category totals: equity / fixed income / cash / real estate / alternatives / crypto
 - Within equity: US / intl developed / intl EM
 - Within fixed income: by issuer/manager (no judgment about which is "better")
-- By account / wrapper
+- By account / account type
 - By owner
 
 ### B. Concentration map (`Concentration.md`, `chart_concentration.png`)
 
-Surface the top exposures as facts. Use the thresholds from config:
+Concentration takes several forms — the report breaks them into distinct subsections so the user can tell at a glance which kind they're looking at. Use thresholds from config and **state each threshold inline** in the subsection (e.g., "Above threshold below means more than 5% of investable held in a single stock.").
 
-- Top 10 single-name exposures by $ and % of investable
-- Sector concentration (with sectors counted *through* broad-market ETFs at index weight)
-- Single-fund concentration (especially within the bond sleeve)
-- Single-issuer / single-employer concentration — wages + comp wrappers + holdings of employer stock all in one bucket
-- Geographic concentration
+Subsections (in this order):
 
-For each, report the number against the threshold. **"Above threshold" is a fact, not a problem.** Never say "you should reduce X." Say "X sits at Y% of Z, above the configured threshold of W%."
+- **Largest positions (any kind)** — top line items by gross value, including funds, stocks, properties, cash. A fund flagged here is not single-name risk — it's a large position. Use a `Kind` column to label each row as ETF / Mutual fund / Stock / Real estate / Cash.
+- **Single-stock concentration (direct holdings only)** — filter to direct equity holdings (section == `equity`). 5%-of-investable threshold.
+- **Single-fund concentration within an asset category** — one fund holding >50% of a category. The fund may be diversified, but the category depends on a single manager.
+- **Employer / wrapper credit exposure** — money inside NQDC / profit-units / similar wrappers is structurally an unsecured creditor claim on the employer. Surface as `employer × wrapper × $ × % × flag`. Separately, list direct holdings of the employer's stock — but only when the **ticker's actual issuer matches the employer**, not when the wrapper inherits the employer tag. Use word-boundary token matching on the employer name to avoid false positives (e.g., "America" matching "American Water Works").
+- **Property concentration** — each investment property as an undiversified single-asset exposure.
+
+**Not in this section:**
+- **Sector breakdown** — lives in the asset-mix section (Section 2 of the report). Sector is a compositional view, not a concentration cut: showing all sectors as a table is the same KIND of breakdown as asset class and geography. Section 2's observation line flags any sector above the 25%-of-equity threshold.
+- **Geographic breakdown** — same reason; lives in Section 2.
+
+**"Above threshold" is a fact, not a problem.** Never say "you should reduce X." Say "X sits at Y% of Z, above the configured threshold of W%."
 
 ### C. Tax-location audit (`TaxLocation.md`, `chart_tax_location_matrix.png`)
 
@@ -286,13 +292,15 @@ A matrix: asset class (rows) × wrapper type (columns), filled with $ values. Su
 
 No "should." Just facts.
 
+**Report rendering (Section 5):** Embed the **heatmap inline + the observations block only**. Do NOT embed the matrix table — it's a direct duplicate of the heatmap. The full matrix lives in `.analysis/TaxLocation.md` for drill-down (cite it in the section's caption).
+
 ### D. Fee analysis (`Fees.csv`)
 
-Per-fund expense ratio, weighted average ER by sleeve, total annual fee load in dollars.
+Per-fund expense ratio, holding $, annual fee $, and **share of total fees**. The report's fee table is descriptive without a chart — a fee bar chart in isolation hides notional context (holding size), so the table replaces it. Compute weighted-average ER and call out the single biggest contributor in commentary.
 
-### E. Income & yield map (`Income.csv`)
+### E. ~~Income & yield map~~ — REMOVED
 
-Annualized estimated income by holding, broken down by character: qualified dividend / ordinary / muni / return of capital. Total household investment income.
+We don't actually compute income (yield × MV with proper character handling). A table showing "holding value by distribution character" is misleading — it implies income data that isn't there. Do not add an income section to the consolidated report. If estimated income becomes useful later, build it as a proper yield model first.
 
 ### F. Anomaly surface (`Anomalies.md`)
 
@@ -305,52 +313,136 @@ Surface the things that look unusual *as observations*, not problems:
 - Account-level reconciliation mismatches vs the household sheet
 - Anything tagged `FOLLOW_UP` in the user's spreadsheet config
 
-### G. Commentary (`Commentary.md`)
+**Excluded from the consolidated report:** Potential TLH (tax-loss harvesting) pairs. TLH is a tactical action recommendation in disguise — surfacing "swap A for B" in a descriptive report crosses into prescription. Keep it in the raw `Anomalies.md` for drill-down, but do not embed in `Investment Analysis Report.md`.
 
-A short editorial narrative — **descriptive** — answering "what stands out about the current state of this portfolio?" Topics that are fair game:
+### G. Consolidated Report (`Investment Analysis Report.md`) — primary artifact
 
-- Notable concentrations
-- Where assets are located (wrapper-wise)
-- Idle / duplicated / dust patterns
-- Anything genuinely surprising in the data
+The **single user-facing artifact** is a structured Markdown report **organized around the questions a holder typically asks**, in **top-down narrative order**: aggregate → composition → specifics → risk → context (tax, fees, anomalies).
 
-Topics that are NOT fair game:
+Section order:
 
-- What the user should do about anything
-- Comparisons to a "target" or "ideal" allocation
-- Recommendations of any kind
+1. **How much do I have, and where does it sit?** — aggregate total + two side-by-side pies (asset category + account)
+2. **What's my real asset mix once I look through every fund?** — compositional view: asset-class table + equity geography + fixed-income split + **sector breakdown through-the-fund** (with threshold flag)
+3. **What do I actually own?** — specific holdings: top-N ledger with clean names + `Kind` column (ETF / Mutual fund / Stock / etc.)
+4. **Where am I concentrated?** — risk-only subsections: largest positions (any kind), single-stock (direct only), single-fund-in-category, employer/wrapper credit exposure, property concentration. **Sector belongs in Section 2, not here** — sector is a compositional view, not a concentration cut.
+5. **Where do things sit, tax-wise?** — wrapper × asset-class heatmap + observations only (NOT the matrix table — it's a direct duplicate of the heatmap; matrix lives in `.analysis/TaxLocation.md`)
+6. **What's it costing me to hold this?** — fee table with holding-$, ER, annual $, share-of-total
+7. **Is anything in the data unusual?** — anomalies (no TLH pairs, no income — see "Removed" notes below)
+8. **What changed since last refresh?** — conditional, only on refresh runs
+
+Followed by an Appendix listing companion files and a closing **"Next Step — Build a Financial Plan?"** section.
+
+#### Design principles (apply to every section)
+
+**1. No duplicates between charts and tables.** Every visual and tabular element should convey *different* information. If a chart and a table show the same data in different forms (e.g., the tax-location heatmap and its underlying matrix table), drop one. Drop the redundant element from the *main report*; keep it in `.analysis/` for drill-down.
+
+**2. Top-down narrative.** Section ordering follows aggregate → composition → specifics → risk → context. Don't reverse the flow. Specifically: composition (asset mix) goes *before* specific holdings (the ledger), because the reader's mental model starts with "what's the shape" and then drills into "what are the actual tickers."
+
+**3. Plain language over jargon.** Pick the word a non-finance reader would use. Documented renames:
+
+| ❌ Avoid (jargon) | ✅ Use (plain) |
+|---|---|
+| Sleeve | **Asset category** |
+| Wrapper | **Account type** (with tooltip explaining "tax container — taxable / qualified retirement / Roth / NQDC / etc.") |
+
+"Sleeve" survives only in internal Python variable names (`SLEEVE_MAP`, `sleeve_label`); never in report copy, chart titles, or column headers.
+
+**4. Threshold flags defined inline.** Never show an "Above threshold" column without stating what the threshold is in the same subsection (e.g., "Above threshold below means **more than 5.0% of investable** held in a single stock").
+
+**5. Clean ticker descriptions** via the `name` field in `fund_asset_class_map.yaml` / `issuer` field in `stock_sector_map.yaml`. Fallback for unmapped tickers: regex-clean the raw description (split CamelCase, ALLCAPS→Capital+lower, digit boundaries, re-acronym US/UK/EU after title-casing).
+
+**6. Refer to positions by their resolved issuer**, not by the wrapper they live in. A stock held inside an NQDC wrapper is the issuer's stock, not the employer's stock — unless the issuer actually IS the employer (use word-boundary token matching to avoid false positives like "America" matching "American Water Works").
+
+**7. Charts inline only when they add information.** Default inline set: the **asset-category pie + account pie** (Section 1, side-by-side) and the **tax-location heatmap** (Section 5). Other charts (asset-class bars, concentration heat, fee bar, income breakdown) get generated but are NOT embedded inline — they would duplicate the section's table. They live in `.analysis/` for browsing.
+
+**8. Short observation block** after each section's data — descriptive only ("largest asset category is X at Y%", "weighted-average ER is X bps"). No "should", no comparisons to a target.
+
+Topics that are fair game in observation blocks: notable concentrations, where assets are located, idle / duplicated / dust patterns, anything genuinely surprising in the data.
+
+Topics that are NOT fair game: what the user should do about anything, comparisons to a "target" allocation, recommendations of any kind.
 
 ### H. Charts
 
 Default chart set (PNG, cream background, muted palette, same aesthetic as `expenses`):
 
-1. **Sleeve allocation pie** — equity / fixed income / cash / real / alt
-2. **Asset class breakdown bar** — within equity: US / intl dev / EM; within bonds: by issuer
-3. **Sankey: accounts → wrappers → asset classes** (interactive HTML via plotly)
-4. **Concentration heat map** — top 15 exposures, color-coded by threshold
-5. **Tax-location matrix** — asset class × wrapper
-6. **Fee load bar** — by sleeve
-7. **Income breakdown** — by character
+1. **Asset category allocation pie** (`chart_allocation_pie.png`) — embedded inline in Section 1
+2. **Account pie** (`chart_account_pie.png`) — embedded inline in Section 1, colored by each account's dominant asset category for visual consistency with chart #1
+3. **Tax-location matrix heatmap** (`chart_tax_location_matrix.png`) — embedded inline in Section 5
+4. **Asset class breakdown bar** (`chart_asset_class_bars.png`) — generated, not embedded (Section 2 table covers it)
+5. **Concentration heat map** (`chart_concentration_heat.png`) — generated, not embedded
+6. **Fee load bar** (`chart_fees_bar.png`) — generated, not embedded (Section 6 table covers it)
+7. **Income breakdown** (`chart_income_breakdown.png`) — generated, not embedded (income section removed from report)
+8. **Sankey: accounts → wrappers → asset classes** (`chart_sankey.html`) — interactive HTML, referenced from Appendix only
 
-Run via `python scripts/generate_charts.py "positions.csv" --config investment_analysis_config.yaml`.
+Run via `python scripts/generate_charts.py <work_folder>`.
 
 ---
 
 ## Output
 
-End with a **clear summary** that includes:
+### Folder layout
+
+Keep the user's source folder clean. At the root of the input folder, only deliverables + the user's own files should live:
+
+```
+<user-folder>/
+├── <statement files>           ← user's own statements (PDFs/CSVs)
+├── Investment Analysis Report.md   ← primary deliverable
+├── Investment Positions.csv        ← user-facing flat ledger
+├── investment_analysis_config.yaml ← config (re-read on refresh)
+└── .analysis/                  ← all intermediates and drill-down
+    ├── raw_positions.csv
+    ├── positions.csv
+    ├── positions_classified.csv
+    ├── statements_meta.json
+    ├── Allocation.csv
+    ├── Concentration.md
+    ├── TaxLocation.md
+    ├── Fees.csv
+    ├── Anomalies.md
+    ├── consolidation_summary.md
+    ├── _analyze_summary.json
+    ├── chart_*.png             ← all chart files
+    └── chart_sankey.html
+```
+
+The `.analysis/` subfolder is created automatically by the scripts. Refresh runs read from and write to it without disturbing the deliverables at the root.
+
+**Why this layout:** the deliverables (Report, Positions ledger, Config) are what the user opens. Hiding 20+ intermediate files behind a `.` subfolder keeps the source folder browsable, while keeping everything co-located so refresh runs work without configuration. The `.` prefix matches `.git`, `.venv`, etc. — universally understood as "tooling state, not user content."
+
+**Auto-open:** when `generate_report.py` finishes, it opens `Investment Analysis Report.md` in the user's default Markdown viewer (`open` on macOS, `xdg-open` on Linux, `start` on Windows). Pass `--no-open` to suppress.
+
+**Legacy migration:** if a prior run wrote intermediates to the folder root (older layout), `generate_report.py` migrates them into `.analysis/` on first invocation. Idempotent — safe to run repeatedly.
+
+### Primary artifact (static report)
+
+The primary deliverable is **`Investment Analysis Report.md`** at the root of the user's working folder — a structured, section-numbered Markdown report with inline tables, inline charts (referenced as `.analysis/chart_X.png`), and short per-section commentary. Companion CSVs and MDs in `.analysis/` provide drill-down material referenced from the report's Appendix.
+
+### For interactive slice-and-dice
+
+The skill **does not** ship a bespoke interactive dashboard. An earlier attempt (Streamlit, then ported to Dash) consistently fought the user — chart click events, cross-filter state, browser caching, and Dash/Streamlit callback wiring all proved too brittle relative to the value delivered.
+
+The right answer for true BI-style exploration is **PowerBI Desktop, Tableau Public, or similar** pointed at `Investment Positions.csv` in the user's source folder. These tools are mature, polished, and handle the cross-filter UX better than any bespoke Python dashboard I'd build in a few iterations. The static report covers the standard descriptive questions; interactive exploration goes to a dedicated BI tool.
+
+If asked to build a dashboard, push back politely and recommend the BI-tool path instead. The lesson from the prior attempt: don't reinvent BI on top of a notebook framework.
+
+In your chat-side wrap-up, give the user a tight summary:
 
 - Total investable + total household net worth (with the split clearly labeled)
-- Sleeve breakdown
+- Asset-category breakdown
 - Top 3–5 concentrations against threshold (as facts)
 - Number of anomalies / follow-ups flagged
-- Pointer to the artifact files
+- Pointer to `Investment Analysis Report.md`
 
 Save all artifacts in the user's working folder. Provide `computer://` links so they can open them.
 
-**Do not end with a "what to do next" recommendation list.** End with a "what to drill into" offer: *"Want to look closer at any sleeve, account, or holding? Or pull a specific thread — concentration, fees, tax-location, anomalies?"*
+**End with the financial-plan transition** — both in `Investment Analysis Report.md`'s closing section and in your chat-side wrap-up:
 
-If the user asks for what to *do* about any of it, respond with: *"That's recommendation territory — needs financial planning context (spending, goals, horizon) to answer well. Once a `financial-planning` skill exists, it'd take this analysis as input. For now, I can describe the current state but not prescribe the next move."*
+> *"Would you like to start building a financial plan?"*
+
+Frame it as the natural next step: this analysis describes **what is**; a financial plan turns that into **what to do** by adding spending, goals, horizon, and risk tolerance. Do **not** offer recommendations directly — even if the user pushes, route back to "that needs the planning layer with your goals + spending."
+
+If the user explicitly says "no, I just want to drill into the current state" — that's fine, take the open-ended drill-down route. The financial-plan offer is the default close, not a forced one.
 
 ---
 
@@ -391,7 +483,8 @@ If the user asks for what to *do* about any of it, respond with: *"That's recomm
 - `references/data/re_methodology.md` — real estate carrying vs liquidation-net computation
 - `scripts/extract_positions.py` — PDF/CSV/spreadsheet ingestion + per-statement reconciliation
 - `scripts/consolidate.py` — dedup, account type inference, owner attribution, household reconciliation
-- `scripts/classify_funds.py` — through-the-fund mapping, unknown fund flagging
+- `scripts/classify_funds.py` — through-the-fund mapping, unknown fund flagging, web_lookup orchestration
+- `scripts/lookup_fund.py` — auto-resolve unknown tickers via Yahoo/Morningstar fact sheets + Claude parsing (enabled by `classify.unknown_fund_behavior: web_lookup`)
 - `scripts/analyze.py` — concentration, tax-location, fees, income, anomalies
 - `scripts/generate_charts.py` — chart pack (matplotlib + optional plotly for sankey)
 - `scripts/generate_report.py` — write all artifact files

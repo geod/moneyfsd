@@ -256,11 +256,14 @@ def consolidate_positions(work_folder: Path, config: dict) -> tuple[list[Positio
     log: list[LogEntry] = []
     summary_lines: list[str] = []
 
-    raw_path = work_folder / "raw_positions.csv"
-    meta_path = work_folder / "statements_meta.json"
+    # Intermediates live in .analysis/ alongside the user's source folder
+    io_dir = work_folder if work_folder.name == ".analysis" else work_folder / ".analysis"
+    io_dir.mkdir(exist_ok=True)
+    raw_path = io_dir / "raw_positions.csv"
+    meta_path = io_dir / "statements_meta.json"
 
     if not raw_path.is_file() or not meta_path.is_file():
-        raise SystemExit(f"missing input files in {work_folder}: raw_positions.csv and statements_meta.json")
+        raise SystemExit(f"missing input files in {io_dir}: raw_positions.csv and statements_meta.json")
 
     raw = pd.read_csv(raw_path)
     statements = json.loads(meta_path.read_text())
@@ -452,6 +455,9 @@ def _manual_holding_to_position(mh: dict, default_member: str) -> Position:
 
 def write_outputs(positions: list[Position], log: list[LogEntry],
                   summary: list[str], work_folder: Path) -> None:
+    io_dir = work_folder if work_folder.name == ".analysis" else work_folder / ".analysis"
+    io_dir.mkdir(exist_ok=True)
+    work_folder = io_dir
     # positions.csv
     pos_path = work_folder / "positions.csv"
     fieldnames = list(positions[0].__dict__.keys()) if positions else []
@@ -549,9 +555,10 @@ def main() -> int:
     nestings = [e for e in log if e.action == "nesting_detected"]
     if nestings:
         print(f"  Detected {len(nestings)} nested wrapper(s)")
-    print(f"Output: {args.work_folder / 'positions.csv'}")
-    print(f"        {args.work_folder / 'consolidation_summary.md'}")
-    print(f"        {args.work_folder / 'consolidation_log.csv'}")
+    io_dir = args.work_folder if args.work_folder.name == ".analysis" else args.work_folder / ".analysis"
+    print(f"Output: {io_dir / 'positions.csv'}")
+    print(f"        {io_dir / 'consolidation_summary.md'}")
+    print(f"        {io_dir / 'consolidation_log.csv'}")
     return 0
 
 

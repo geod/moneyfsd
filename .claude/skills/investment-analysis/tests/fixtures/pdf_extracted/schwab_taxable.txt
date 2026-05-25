@@ -1,0 +1,45 @@
+# Synthetic fixture — Schwab taxable brokerage statement extracted text.
+# All PII generic. Account number masked. Names are generic personas.
+# Tickers are real ETFs (public market data, not PII).
+
+Charles Schwab & Co., Inc. Member SIPC
+Brokerage Account of AccountNickname
+TaxableMain
+AccountNumber StatementPeriod
+PRIMARY HOLDER 1234-5678 March1-31,2026
+
+Account Summary
+EndingAccountValueasof03/31 BeginningAccountValueasof03/01
+$1,250,000.00 $1,210,500.00
+
+InvestmentObjective:
+Growth
+
+Federal Tax Status Tax-Exempt Taxable
+SchwabOne Interest 0.00 1.50
+CashDividends 0.00 4,200.00
+TotalIncome $0.00 $4,201.50
+
+Positions - Equities
+Unrealized Est. Est.Annual %of
+Symbol Description Quantity Price($) Market Value($) CostBasis($) Gain/(Loss)($) Yield Income($) Acct
+AAPL APPLEINC 100.0000 200.00000 20,000.00 8,000.00 12,000.00 0.5% 100.00 2%
+TotalEquities $20,000.00 $8,000.00 $12,000.00 $100.00 2%
+
+Positions - Exchange Traded Funds
+Unrealized Est. Est.Annual %of
+Symbol Description Quantity Price($) Market Value($) CostBasis($) Gain/(Loss)($) Yield Income($) Acct
+VTI VANGUARDTOTALSTOCK 2000.0000 300.00000 600,000.00 400,000.00 200,000.00 1.5% 9,000.00 48%
+SCHF SCHWABINTERNATIONAL 5000.0000 25.00000 125,000.00 100,000.00 25,000.00 4.0% 5,000.00 10%
+VWO VANGUARDFTSEEMERGING 2000.0000 50.00000 100,000.00 90,000.00 10,000.00 5.0% 5,000.00 8%
+BND VANGUARDTOTALBOND 4000.0000 100.00000 400,000.00 400,000.00 0.00 3.5% 14,000.00 32%
+TotalExchangeTradedFunds $1,225,000.00 $990,000.00 $235,000.00 $33,000.00 98%
+
+Cash and Cash Investments
+Beginning Ending ChangeinPeriod Pending/Unsettled Interest/ %of
+Type Symbol Description Quantity Price($) Balance($) Balance($) Balance($) Cash($) YieldRate Acct
+Cash 5,000.00 5,000.00 0.00 0.00 <1%
+
+Transactions - Summary
+BeginningCash*asof03/01 + Deposits + Withdrawals + Purchases + Sales/Redemptions + Dividends/Interest + Expenses = EndingCash*asof03/31
+$5,000.00 $0.00 $0.00 $0.00 $0.00 $4,201.50 $0.00 $5,000.00

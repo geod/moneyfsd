@@ -1,4 +1,4 @@
-<h1 align="center">moneyfsd</h1>
+<h1 align="center">fsdmoney</h1>
 
 <p align="center"><b>Full self-driving for your money.</b></p>
 
@@ -21,7 +21,7 @@
 
 ---
 
-`moneyfsd` is a set of Claude Code skills for managing your personal
+`fsdmoney` is a set of Claude Code skills for managing your personal
 finances. Your statements stay on your local disk; Claude analyzes them
 in your own Code session, with nothing uploaded or shared with a third
 party. We plan a set of skills to address different stages of personal
@@ -42,7 +42,7 @@ the first to go live.
 
 ## How it works
 
-Every moneyfsd skill follows the same shape:
+Every fsdmoney skill follows the same shape:
 
 1. **You drop raw data** — bank and card statements, brokerage PDFs, a
    W-2 — into a folder. No exports to a third party, no account
@@ -88,7 +88,7 @@ money actually go* — without the manual slog.
 ### What's different
 
 - [x] **Better automatic categorisation.** Traditional tools rely on
-  keyword matching and leave a long tail in *Misc*. moneyfsd uses
+  keyword matching and leave a long tail in *Misc*. fsdmoney uses
   Claude's semantic understanding of merchants and context, backed by
   web search when a name is unfamiliar. Typical first pass: <1% of
   transactions untagged.
@@ -144,8 +144,8 @@ money actually go* — without the manual slog.
 
 ```bash
 # 1. Install the skill
-git clone https://github.com/geod/moneyfsd.git
-cp -r moneyfsd/.claude/skills/expenses ~/.claude/skills/
+git clone https://github.com/geod/fsdmoney.git
+cp -r fsdmoney/.claude/skills/expenses ~/.claude/skills/
 
 # 2. Put your checking account and credit card statements in a folder
 # CSVs and PDFs both fine
