@@ -31,6 +31,9 @@ from typing import Any, Optional
 import pandas as pd
 import yaml
 
+# Allow `from lookup_fund import ...` when invoked as a script
+sys.path.insert(0, str(Path(__file__).resolve().parent))
+
 
 # -----------------------------------------------------------------------------
 # Data containers
@@ -85,30 +88,62 @@ def load_yaml(path: Path) -> dict:
         return yaml.safe_load(f) or {}
 
 
-def build_registry(data_dir: Path, config: dict) -> tuple[dict, dict, dict, dict]:
+def build_registry(data_dir: Path, config: dict,
+                    auto_overrides_path: Optional[Path] = None) -> tuple[dict, dict, dict, dict]:
     fund_map = load_yaml(data_dir / "fund_asset_class_map.yaml")
     stock_map = load_yaml(data_dir / "stock_sector_map.yaml")
     dist_char = load_yaml(data_dir / "distribution_character.yaml")
     taxonomy = load_yaml(data_dir / "account_type_taxonomy.yaml")
 
-    # Merge in user fund_overrides
-    overrides = config.get("fund_overrides", {})
-    for ticker, mapping in overrides.items():
-        existing = fund_map.get(ticker, {})
-        if isinstance(mapping, dict) and "asset_classes" in mapping:
-            existing.update(mapping)
-        else:
-            # Bare dict of class→weight
-            existing["asset_classes"] = mapping
-        existing.setdefault("name", ticker)
-        existing["_source"] = "user_override"
-        fund_map[ticker] = existing
+    def _merge_overrides(overrides: dict, source_label: str) -> None:
+        for ticker, mapping in (overrides or {}).items():
+            existing = fund_map.get(ticker, {})
+            if isinstance(mapping, dict) and "asset_classes" in mapping:
+                existing.update(mapping)
+            else:
+                # Bare dict of class→weight
+                existing["asset_classes"] = mapping
+            existing.setdefault("name", ticker)
+            existing["_source"] = source_label
+            fund_map[ticker] = existing
+
+    # User-edited overrides (highest authority)
+    _merge_overrides(config.get("fund_overrides", {}), "user_override")
+
+    # Auto-resolved overrides from prior web_lookup runs (lower authority — user can correct)
+    if auto_overrides_path and auto_overrides_path.is_file():
+        auto = load_yaml(auto_overrides_path) or {}
+        _merge_overrides(auto.get("fund_overrides", {}), "auto_lookup")
 
     # Merge stock_overrides
     for ticker, mapping in config.get("stock_overrides", {}).items():
         stock_map[ticker] = {**(stock_map.get(ticker) or {}), **mapping, "_source": "user_override"}
 
     return fund_map, stock_map, dist_char, taxonomy
+
+
+def append_auto_override(auto_overrides_path: Path, ticker: str, entry: dict) -> None:
+    """Persist a resolved lookup to the sidecar file, preserving prior entries."""
+    existing = {}
+    if auto_overrides_path.is_file():
+        existing = load_yaml(auto_overrides_path) or {}
+    overrides = existing.setdefault("fund_overrides", {})
+    overrides[ticker] = entry
+    # Header comment + write
+    header = (
+        "# Auto-resolved fund overrides, written by classify_funds.py when\n"
+        "# `classify.unknown_fund_behavior: web_lookup` is active.\n"
+        "#\n"
+        "# Each entry was extracted from a public fund factsheet / data page by\n"
+        "# Claude (claude-haiku-4-5). Review and correct as needed — entries here\n"
+        "# can be promoted into your main investment_analysis_config.yaml under\n"
+        "# `fund_overrides:` if you want stronger authority.\n"
+        "#\n"
+        "# User-edited overrides in the main config always win over auto entries.\n\n"
+    )
+    with auto_overrides_path.open("w") as f:
+        f.write(header)
+        yaml.safe_dump(existing, f, sort_keys=False, default_flow_style=False)
 
 
 def resolve_synonym(ticker: str, fund_map: dict) -> str:
@@ -315,10 +350,24 @@ def main() -> int:
 
     data_dir = args.data_dir or (Path(__file__).parent.parent / "references" / "data")
     config = load_yaml(args.config) if args.config else {}
+    thresholds = load_yaml(data_dir / "thresholds.yaml")
 
-    fund_map, stock_map, dist_char, taxonomy = build_registry(data_dir, config)
+    # The auto-overrides sidecar lives at the working-folder root (not inside
+    # .analysis/) so the user can see and edit it alongside their main config.
+    work_root = args.work_folder if args.work_folder.name != ".analysis" else args.work_folder.parent
+    auto_overrides_path = work_root / "fund_overrides_auto.yaml"
 
-    pos_path = args.work_folder / "positions.csv"
+    fund_map, stock_map, dist_char, taxonomy = build_registry(data_dir, config, auto_overrides_path)
+
+    # Determine unknown-fund behavior
+    behavior = (config.get("classify") or {}).get("unknown_fund_behavior") \
+               or (thresholds.get("classify") or {}).get("unknown_fund_behavior", "prompt_and_persist")
+
+    # Intermediates live in .analysis/ subfolder
+    io_dir = args.work_folder if args.work_folder.name == ".analysis" else args.work_folder / ".analysis"
+    io_dir.mkdir(exist_ok=True)
+
+    pos_path = io_dir / "positions.csv"
     if not pos_path.is_file():
         print(f"error: {pos_path} not found", file=sys.stderr)
         return 2
@@ -326,6 +375,51 @@ def main() -> int:
     positions = pd.read_csv(pos_path)
     from datetime import date as _date
     classification_date = _date.today().isoformat()
+
+    # If web_lookup mode is active, pre-resolve unknowns before final classification.
+    if behavior == "web_lookup":
+        try:
+            from lookup_fund import lookup_fund_via_web
+        except ImportError:
+            print("  ⚠ lookup_fund module not available — falling back to prompt_and_persist",
+                  file=sys.stderr)
+            lookup_fund_via_web = None
+        if lookup_fund_via_web:
+            # Find unknowns once, look them up, persist, then classify normally.
+            seen: set[str] = set()
+            resolved_count = 0
+            for _, row in positions.iterrows():
+                _rows, unknown = classify_position(
+                    row, fund_map, stock_map, dist_char, taxonomy, classification_date,
+                )
+                if not unknown:
+                    continue
+                ticker = unknown["ticker"]
+                if ticker in seen:
+                    continue
+                seen.add(ticker)
+                # Skip if it's not a fund-ticker shape (e.g., long synthetic name from the qualified-plan parser)
+                lookup_key = ticker
+                description = unknown.get("description", "")
+                print(f"  Looking up {lookup_key} ({description[:50]}) ...", file=sys.stderr)
+                result = lookup_fund_via_web(lookup_key, description, verbose=False)
+                if not result:
+                    continue
+                # Persist + apply
+                append_auto_override(auto_overrides_path, lookup_key, result)
+                existing = fund_map.get(lookup_key, {})
+                existing.update({
+                    "asset_classes": result["asset_classes"],
+                    "expense_ratio": result.get("expense_ratio"),
+                    "distribution_character": result.get("distribution_character"),
+                    "_source": "auto_lookup",
+                })
+                existing.setdefault("name", result.get("_fund_name") or lookup_key)
+                fund_map[lookup_key] = existing
+                resolved_count += 1
+            if resolved_count:
+                print(f"  Auto-resolved {resolved_count} unknown(s) via web lookup → {auto_overrides_path.name}",
+                      file=sys.stderr)
 
     classified: list[ClassifiedRow] = []
     unknowns: list[dict] = []
@@ -336,7 +430,7 @@ def main() -> int:
             unknowns.append(unknown)
 
     # Write positions_classified.csv
-    out_path = args.work_folder / "positions_classified.csv"
+    out_path = io_dir / "positions_classified.csv"
     fieldnames = list(ClassifiedRow.__dataclass_fields__.keys())
     with out_path.open("w", newline="") as f:
         writer = csv.DictWriter(f, fieldnames=fieldnames)
@@ -345,7 +439,7 @@ def main() -> int:
             writer.writerow(c.__dict__)
 
     # Write classification_unknowns.md
-    unk_path = args.work_folder / "classification_unknowns.md"
+    unk_path = io_dir / "classification_unknowns.md"
     if unknowns:
         lines = [
             "# Classification Unknowns",

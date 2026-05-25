@@ -216,11 +216,25 @@ Configured by `classify.unknown_fund_behavior` in `references/data/thresholds.ya
 3. User responds with breakdowns; skill writes them into `fund_overrides`.
 4. Re-run classification with the new overrides — no more unknowns.
 
-**Mode B: `web_lookup`**
+**Mode B: `web_lookup` — IMPLEMENTED**
 
-For each unknown, query a public source (Morningstar, fund company factsheet via the issuer's site). Parse the asset-allocation breakdown. Write to `fund_overrides` automatically.
+For each unknown, the skill auto-resolves via `scripts/lookup_fund.py`:
 
-Useful for batch / non-interactive runs. Has more failure modes (network errors, factsheet parsing breaks) and should still surface what was looked up for the user to review.
+1. **Resolve fake-ticker → real ticker.** When the input is a name fragment (e.g., the 401(k) plan parser truncates fund names to 20 chars), use Yahoo Finance's search API to find the canonical exchange ticker.
+2. **Fetch candidate pages** in order: Yahoo Finance holdings → Yahoo Finance quote → Morningstar portfolio → Morningstar quote → ETF.com. Stop at the first page that yields a parseable breakdown.
+3. **Parse via Claude** (`claude-haiku-4-5-20251001`). The page text is sent with a structured-output system prompt; Claude returns JSON in the asset-class breakdown schema. The prompt enforces hard rules (weights sum to ~1.0, only known asset-class keys, fold "convertibles" / "preferred" / "other" into the closest match, use current allocation for TDFs not glide-path).
+4. **Persist** to `fund_overrides_auto.yaml` at the working-folder root, alongside the user's main config. Each entry carries `_lookup_source` (URL), `_lookup_date` (ISO date), `_confidence` (high/medium/low), `_fund_name`.
+5. **Authority chain (high → low)**: user-edited `fund_overrides` in main config → `fund_overrides_auto.yaml` (auto-resolved) → registry (`fund_asset_class_map.yaml`) → synonyms → CUSIP map. User-edited entries ALWAYS win.
+
+**Authentication:** uses the Anthropic SDK if `ANTHROPIC_API_KEY` is set; falls back to invoking `claude -p` as a subprocess (works inside Claude Code sessions where auth is host-managed). If neither path is available, falls back to `prompt_and_persist`.
+
+**Cost:** ~$0.005–0.02 per unknown fund resolved (Haiku 4.5 inputs are ~30k tokens of page text).
+
+**Failure modes:**
+- Network unreachable / page returns 4xx → tries next candidate
+- Page has no asset allocation content → tries next candidate
+- LLM returns `found: false` or weights that don't sum to ~1.0 → tries next candidate
+- All sources exhausted → falls through to `prompt_and_persist` (flagged in unknowns file)
 
 **Mode C: `fail_loud`**
 

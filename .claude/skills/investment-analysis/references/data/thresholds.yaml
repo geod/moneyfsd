@@ -66,7 +66,17 @@ reconciliation:
 # Classification behavior.
 classify:
   # How to handle a ticker not in registry/overrides/synonyms/CUSIP map.
-  # Options: prompt_and_persist | web_lookup | fail_loud
+  #
+  # - prompt_and_persist (default): flag unknowns in classification_unknowns.md;
+  #   user fills in fund_overrides manually in their config and re-runs.
+  #
+  # - web_lookup: fetch candidate fund factsheets (Yahoo Finance / Morningstar /
+  #   issuer site) and use Claude (claude-haiku-4-5) to parse the asset-allocation
+  #   breakdown. Results persist to fund_overrides_auto.yaml alongside the user's
+  #   main config. Requires ANTHROPIC_API_KEY in the environment. Falls back to
+  #   prompt_and_persist for any fund that can't be resolved.
+  #
+  # - fail_loud: refuse to produce output until every unknown is resolved manually.
   unknown_fund_behavior: prompt_and_persist
 
   # Age in days after which a registry entry's `last_verified` is considered stale,
