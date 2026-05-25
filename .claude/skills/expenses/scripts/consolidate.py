@@ -259,11 +259,13 @@ def ingest_chase_card_pdf(file_spec, source_config, base):
 
     exclude_patterns = source_config.get("exclude_description_patterns", [
         # Chase ships several payoff descriptions across statement formats:
-        #   "AUTOMATIC PAYMENT - THANK YOU" (auto-pay)
+        #   "AUTOMATIC PAYMENT - THANK YOU" (auto-pay; hyphen separator)
         #   "Payment Thank You-Mobile"      (mobile-app payoff)
         #   "Payment Thank You"             (web payoff)
         # All are card payoffs that get double-counted if not excluded.
-        r"PAYMENT\s+THANK\s+YOU",
+        # The hyphen / whitespace between PAYMENT and THANK varies across
+        # statement formats — match either.
+        r"PAYMENT[\s\-]+THANK\s+YOU",
     ])
     exclude_re = re.compile("|".join(exclude_patterns), re.IGNORECASE) if exclude_patterns else None
 
@@ -930,8 +932,10 @@ def detect_orphan_airfare(all_tx, lookback_days=5, threshold=500):
     df = all_tx.copy()
     df['_dt'] = pd.to_datetime(df['Date'])
     travel = df[df['Category'] == 'Travel']
+    # Non-capturing group (?:...) keeps pandas' str.contains quiet — it
+    # warns when the compiled regex has match groups it can't expose.
     air_re = re.compile(
-        r'(airline|airways|air canada|air france|alaska air|american airlines|'
+        r'(?:airline|airways|air canada|air france|alaska air|american airlines|'
         r'delta air|jetblue|southwest|united airlines|swiss international|'
         r'frontier airlines|spirit airlines|lufthansa|british airways|virgin atlantic|'
         r'klm|qantas|emirates|cathay)', re.IGNORECASE)

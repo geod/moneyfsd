@@ -1,0 +1,52 @@
+# Synthetic fixture — hand-crafted to mirror a generic Chase credit-card
+# statement layout. No real account numbers, addresses, or names.
+# All personas use Mike Chen / Sarah Chen. All amounts and merchants invented.
+
+CHASE SAPPHIRE PREFERRED
+Statement Date: 03/15/2025 to 04/14/2025
+Account Number ending in ****4242
+
+Cardholder: MIKE CHEN
+123 Main St
+Anytown, CA 12345
+
+PAYMENT INFORMATION
+Previous Balance              $1,242.00
+Payments                     -$1,242.00
+Other Credits                    -$45.00
+Purchases                    $2,891.34
+New Balance                  $1,604.34
+Minimum Payment Due             $40.00
+
+ACCOUNT ACTIVITY
+
+Date     Description                                    Amount
+03/16    WHOLE FOODS MARKET ANYTOWN CA                  138.42
+03/17    SHELL OIL #5544                                 52.10
+03/18    AMZN MKTP US*ABC123                             89.97
+03/19    BLUE BOTTLE COFFEE 451                           7.25
+03/20    AUTOMATIC PAYMENT - THANK YOU              -1,242.00
+03/21    DELTA AIR LINES                                612.00
+03/22    HYATT TOKYO RESERVATION                        892.00
+03/23    UBER TRIP HELP.UBER.COM                         28.50
+03/25    MERCHANT REFUND - PATAGONIA OUTLET             -45.00
+03/27    WHOLE FOODS MARKET ANYTOWN CA                  102.15
+03/28    STARBUCKS STORE #11234                           6.85
+03/30    NETFLIX.COM                                     15.49
+04/02    PG&E AUTOPAY                                   215.00
+04/03    SQ *COFFEE SHOP DOWNTOWN                         8.50
+04/05    PEET'S COFFEE ANYTOWN                           12.40
+04/07    SAFEWAY 4242                                    87.30
+04/09    WALGREENS #2200                                 24.50
+04/11    SP*GENERIC SOFTWARE                             19.99
+04/13    WHOLE FOODS MARKET ANYTOWN CA                  165.42
+04/14    SHELL OIL #5544                                 48.75
+
+Page 1 of 2
+
+CARDHOLDER REWARDS SUMMARY
+Points earned this period:     2,891
+Points balance:              112,440
+
+For service or to manage your account, visit chase.com or
+call the number on the back of your card.

@@ -1,0 +1,61 @@
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "moneyfsd-tests"
+version = "0.0.1"
+description = "Test infrastructure for moneyfsd skills"
+requires-python = ">=3.10"
+
+[project.optional-dependencies]
+test = [
+    "pytest>=7.0",
+    "pytest-cov>=4.0",
+    "pandas>=2.0",
+    "pyyaml>=6.0",
+    "pdfplumber>=0.11",
+    "matplotlib>=3.5",
+    "reportlab>=4.0",  # for synthetic PDF generation
+]
+
+[tool.pytest.ini_options]
+testpaths = [
+    ".claude/skills/expenses/tests",
+    ".claude/skills/investment-analysis/tests",
+    ".claude/skills/income/tests",
+]
+python_files = ["test_*.py"]
+python_classes = ["Test*"]
+python_functions = ["test_*"]
+addopts = [
+    "-ra",                  # short summary of skips/fails at end
+    "--strict-markers",
+    "--strict-config",
+    "-p", "no:cacheprovider",  # repo is read-mostly; no cache clutter
+]
+markers = [
+    "slow: tests that hit subprocess or generate PDFs",
+    "smoke: high-level smoke tests (slower, broader)",
+]
+filterwarnings = [
+    "ignore::DeprecationWarning:pandas",
+    "ignore::FutureWarning:pandas",
+]
+
+[tool.coverage.run]
+source = [
+    ".claude/skills/expenses/scripts",
+    ".claude/skills/investment-analysis/scripts",
+]
+omit = [
+    "*/tests/*",
+    "*/__pycache__/*",
+]
+
+[tool.coverage.report]
+exclude_lines = [
+    "pragma: no cover",
+    "if __name__ == .__main__.:",
+    "raise NotImplementedError",
+]

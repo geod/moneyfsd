@@ -29,24 +29,23 @@ import pandas as pd
 import yaml
 
 
-def main():
-    parser = argparse.ArgumentParser()
-    parser.add_argument('--csv', required=True)
-    parser.add_argument('--refunds', required=True)
-    args = parser.parse_args()
+REFUND_TAG_REGEX = r'REFUND|RETURN|CREDIT'
 
-    df = pd.read_csv(args.csv)
 
-    # Drop existing refund rows
-    refund_mask = df['Original Category'].fillna('').str.contains('REFUND|RETURN|CREDIT', case=False)
-    removed = int(refund_mask.sum())
-    if removed:
-        print(f"Dropped {removed} existing refund/credit rows before re-append")
-    df = df[~refund_mask].copy()
+def drop_existing_refunds(df: pd.DataFrame) -> tuple[pd.DataFrame, int]:
+    """Drop rows whose `Original Category` is tagged REFUND/RETURN/CREDIT.
 
-    with open(args.refunds) as f:
-        spec = yaml.safe_load(f)
+    Returns the trimmed DataFrame and the count of dropped rows. Combined
+    with ``build_refund_rows``, makes ``apply_refunds_to_df`` idempotent:
+    re-running with the same spec produces the same final dataset.
+    """
+    mask = df['Original Category'].fillna('').str.contains(REFUND_TAG_REGEX, case=False)
+    removed = int(mask.sum())
+    return df[~mask].copy(), removed
 
+
+def build_refund_rows(spec: dict) -> list[dict]:
+    """Translate a refunds-spec dict into uniform refund rows."""
     rows = []
     for r in spec.get('refunds', []):
         rows.append({
@@ -58,14 +57,43 @@ def main():
             'Amount': r['amount'],
             'Original Category': r.get('original_category', f"{r['source']} / REFUND"),
         })
+    return rows
 
+
+def apply_refunds_to_df(df: pd.DataFrame, spec: dict) -> pd.DataFrame:
+    """Pure-function form of the CLI: returns a new DataFrame with refund
+    rows appended (and any pre-existing refund rows dropped first).
+    """
+    trimmed, _ = drop_existing_refunds(df)
+    rows = build_refund_rows(spec)
+    if not rows:
+        return trimmed
+    add = pd.DataFrame(rows)
+    return pd.concat([trimmed, add], ignore_index=True)
+
+
+def main():
+    parser = argparse.ArgumentParser()
+    parser.add_argument('--csv', required=True)
+    parser.add_argument('--refunds', required=True)
+    args = parser.parse_args()
+
+    df = pd.read_csv(args.csv)
+    trimmed, removed = drop_existing_refunds(df)
+    if removed:
+        print(f"Dropped {removed} existing refund/credit rows before re-append")
+
+    with open(args.refunds) as f:
+        spec = yaml.safe_load(f)
+
+    rows = build_refund_rows(spec)
     if not rows:
         print("No refunds in spec; nothing to append.")
-        df.to_csv(args.csv, index=False)
+        trimmed.to_csv(args.csv, index=False)
         return
 
     add = pd.DataFrame(rows)
-    out = pd.concat([df, add], ignore_index=True)
+    out = pd.concat([trimmed, add], ignore_index=True)
     out.to_csv(args.csv, index=False)
     print(f"Added {len(add)} refund rows totaling ${add['Amount'].sum():,.2f}")
     print(f"New total: ${out['Amount'].sum():,.2f} ({len(out):,} txns)")

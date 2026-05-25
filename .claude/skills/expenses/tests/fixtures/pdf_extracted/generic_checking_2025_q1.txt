@@ -1,0 +1,62 @@
+# Synthetic fixture — generic bank checking statement layout.
+# All synthetic. No real account numbers, names, or merchants.
+# Personas: Mike Chen / Sarah Chen.
+#
+# Includes the tricky cases the parser needs to handle:
+#   - Mortgage autopay (excluded as Mortgage category)
+#   - IRS payment (excluded as Taxes)
+#   - Brokerage transfer (excluded as Investment)
+#   - Card payoff (excluded as Credit Card Payments — would double-count)
+#   - Multiple mortgage streams from same servicer (different account suffix)
+
+ANYTOWN COMMUNITY BANK
+TOTAL CHECKING STATEMENT
+
+For: MIKE CHEN, SARAH CHEN
+Account ****8821
+Statement Period: 01/01/2025 to 03/31/2025
+
+ACCOUNT SUMMARY
+Beginning Balance              $14,205.42
+Deposits / Additions          +$28,500.00
+Withdrawals / Subtractions    -$26,815.43
+Ending Balance                 $15,889.99
+
+TRANSACTIONS
+
+Date     Description                                     Amount
+01/02    EMPLOYER ACH DEPOSIT                        +$9,500.00
+01/03    WELLS FARGO MTG PYMT 1112233                 -$3,850.00
+01/03    WELLS FARGO MTG PYMT 9988776                 -$1,420.00
+01/05    CHASE EPAY CARD PAYMENT                      -$1,242.00
+01/07    AMEX EPAY CARD PAYMENT                       -$2,140.00
+01/10    PG&E AUTOPAY                                   -$215.00
+01/15    SCHWAB ACH TRANSFER OUT                      -$2,000.00
+01/18    ZELLE PAYMENT TO CLEANER                       -$300.00
+01/22    XFINITY INTERNET AUTOPAY                       -$112.00
+01/28    ATM WITHDRAWAL                                 -$300.00
+02/02    EMPLOYER ACH DEPOSIT                        +$9,500.00
+02/03    WELLS FARGO MTG PYMT 1112233                 -$3,850.00
+02/03    WELLS FARGO MTG PYMT 9988776                 -$1,420.00
+02/05    CHASE EPAY CARD PAYMENT                      -$1,604.00
+02/07    AMEX EPAY CARD PAYMENT                       -$3,742.00
+02/10    PG&E AUTOPAY                                   -$232.00
+02/14    IRS QUARTERLY TAX PAYMENT                    -$8,500.00
+02/18    ZELLE PAYMENT TO CLEANER                       -$300.00
+02/22    XFINITY INTERNET AUTOPAY                       -$112.00
+02/26    ATM WITHDRAWAL                                 -$200.00
+03/02    EMPLOYER ACH DEPOSIT                        +$9,500.00
+03/03    WELLS FARGO MTG PYMT 1112233                 -$3,850.00
+03/03    WELLS FARGO MTG PYMT 9988776                 -$1,420.00
+03/05    CHASE EPAY CARD PAYMENT                      -$1,890.00
+03/07    AMEX EPAY CARD PAYMENT                       -$2,975.00
+03/10    PG&E AUTOPAY                                   -$245.00
+03/15    SCHWAB ACH TRANSFER OUT                      -$5,000.00
+03/18    ZELLE PAYMENT TO CLEANER                       -$300.00
+03/22    XFINITY INTERNET AUTOPAY                       -$112.00
+03/29    ATM WITHDRAWAL                                 -$400.00
+
+Member FDIC. For service, visit anytown.bank or call 555-555-1234.
+Mailed statements available on request.
+
+Page 1 of 1

@@ -1,0 +1,64 @@
+# Synthetic fixture — generic American Express credit-card statement layout.
+# No real account numbers, names, or merchants from any author's data.
+# Personas: Mike Chen / Sarah Chen.
+
+AMERICAN EXPRESS
+Account ending in -73005
+
+Statement Period: 06/01/2025 to 06/30/2025
+
+Prepared for:
+MIKE CHEN
+SARAH CHEN
+Anytown, CA
+
+ACCOUNT SUMMARY
+Previous Balance              $2,140.55
+Payments / Credits           -$2,140.55
+New Charges                   $3,742.18
+Fees                              $0.00
+Interest Charged                  $0.00
+New Balance                   $3,742.18
+
+NEW CHARGES
+
+Date     Description                            Cardmember         Amount
+06/02    TRADER JOE'S #155                      MIKE CHEN          78.42
+06/03    BLUE BOTTLE COFFEE                     MIKE CHEN           6.50
+06/04    SAFEWAY 4880                           SARAH CHEN        128.65
+06/05    PEET'S COFFEE LOCAL                    MIKE CHEN           4.25
+06/06    SQ *COFFEE SHOP DOWNTOWN               MIKE CHEN           8.50
+06/07    DELTA AIR LINES NYC                    MIKE CHEN         412.30
+06/08    AIRBNB INC NYC                         MIKE CHEN         615.00
+06/09    SHAKE SHACK MANHATTAN                  MIKE CHEN          22.40
+06/10    UBER TRIP NYC                          MIKE CHEN          18.50
+06/11    BLUE BOTTLE COFFEE NYC                 MIKE CHEN           6.25
+06/12    LYFT NYC                               SARAH CHEN         12.40
+06/13    JOE'S PIZZA NYC                        MIKE CHEN          18.00
+06/15    AMZN MKTP US                           SARAH CHEN         42.18
+06/17    NETFLIX                                MIKE CHEN          15.49
+06/18    STARBUCKS #11234                       MIKE CHEN           6.85
+06/20    APPLE.COM/BILL                         SARAH CHEN          0.99
+06/22    REI #1234                              MIKE CHEN         145.00
+06/23    REI #1234                              MIKE CHEN          82.30
+06/25    PG&E ELECTRIC AUTOPAY                  MIKE CHEN         215.00
+06/26    WHOLE FOODS MARKET                     MIKE CHEN         142.70
+06/27    SQ *FARMERS MARKET BERKELEY            SARAH CHEN         45.00
+06/28    CHEVRON #4400                          MIKE CHEN          58.20
+
+PAYMENTS AND CREDITS
+
+Date     Description                                              Amount
+06/15    AUTOPAY - THANK YOU                                  -2,140.55
+
+ADDITIONAL ACTIVITY (NOT INCLUDED IN NEW CHARGES)
+None this period.
+
+REWARDS SUMMARY
+Membership Rewards earned: 5,613
+Membership Rewards balance: 218,440
+
+Page 1 of 3
+
+Customer Service: visit americanexpress.com or call the number
+on the back of your card.
