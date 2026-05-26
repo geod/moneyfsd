@@ -39,6 +39,8 @@ from typing import Any, Optional
 import pandas as pd
 import yaml
 
+from _config_discover import auto_discover_config
+
 # Default thresholds (these mirror references/data/thresholds.yaml)
 DEFAULT_RECONCILIATION = {
     "per_account_vs_sheet": {"absolute_usd": 1000.0, "relative_pct": 0.01},
@@ -353,8 +355,18 @@ def consolidate_positions(work_folder: Path, config: dict) -> tuple[list[Positio
         log.append(LogEntry("manual_holding_injected", mh.get("account", "?"), f"type={mh.get('type')} value={mh.get('value')}"))
 
     # 5. Inject real estate
+    # Primary residence (use=primary) is NOT injected into positions — per
+    # SKILL.md it's excluded from the investable allocation analysis (it's a
+    # lifestyle asset, not a portfolio position). Its market_value + mortgage
+    # stay in the config and will be picked up by the future Layer-2
+    # `balance-sheet` skill for net-worth composition. Investment-use
+    # properties (rentals, vacation, etc.) are injected normally.
     re_defaults = config.get("real_estate_liquidation", {})
     for prop in config.get("real_estate", []):
+        if prop.get("use") == "primary":
+            log.append(LogEntry("real_estate_excluded_primary", prop.get("name", "?"),
+                                "use=primary — excluded from investable; lives in config for net-worth view"))
+            continue
         net_eq, methodology = compute_re_equity(prop, re_defaults)
         positions.append(Position(
             account=prop.get("name", "real_estate"),
@@ -544,9 +556,12 @@ def main() -> int:
         return 2
 
     config: dict[str, Any] = {}
-    if args.config and args.config.is_file():
-        with args.config.open() as f:
+    resolved_config = auto_discover_config(args.work_folder, args.config)
+    if resolved_config:
+        with resolved_config.open() as f:
             config = yaml.safe_load(f) or {}
+        if not args.config:
+            print(f"  Using config: {resolved_config}")
 
     positions, log, summary = consolidate_positions(args.work_folder, config)
     write_outputs(positions, log, summary, args.work_folder)

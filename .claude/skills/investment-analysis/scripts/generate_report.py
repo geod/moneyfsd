@@ -43,6 +43,8 @@ from typing import Optional
 import pandas as pd
 import yaml
 
+from _config_discover import auto_discover_config
+
 
 SCRIPT_DIR = Path(__file__).parent
 DATA_DIR = SCRIPT_DIR.parent / "references" / "data"
@@ -1058,12 +1060,11 @@ def main() -> int:
     # Config lives at the root of the user's folder (it's a deliverable —
     # users edit it manually to add overrides, set thresholds, etc.).
     config = {}
-    if not args.config:
-        guess = user_folder / "investment_analysis_config.yaml"
-        if guess.is_file():
-            args.config = guess
-    if args.config and args.config.is_file():
-        config = load_yaml(args.config)
+    resolved_config = auto_discover_config(args.work_folder, args.config)
+    if resolved_config:
+        config = load_yaml(resolved_config)
+        if not args.config:
+            print(f"  Using config: {resolved_config}")
 
     prior_path = find_prior_classified(io_dir)
     delta = None

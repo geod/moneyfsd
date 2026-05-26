@@ -77,15 +77,18 @@ Phases are scaffolding for *you*. The user should never see "Phase 3 → Phase 4
 
 ### User-facing transition prompts
 
-End every phase by hinting at what's next, in plain language. Never name the phase.
+End every phase by hinting at what's next, in plain language. Never name the phase or the internal stage.
+
+**Note on stage-vs-phase ordering:** Phase 2 (Ingest = `extract_positions.py`) runs *inside* Phase 1's Stage 2 — that's where statements get parsed for the inference needed by Stage 3. The internal-transition table below reflects what the user experiences, not the script execution order.
 
 | Internal transition | What you say to the user |
 |---|---|
-| 1 → 2 | *"Got it — [N statements] across [M accounts], owner attribution mapped. Reading them in now."* |
-| 2 → 3 | *(silent — runs inside the script)* |
-| 3 → 4 | *"Consolidated. [N] positions across [M] accounts, totalling $X.XM. Anything obviously missing or wrong before I classify?"* |
-| 4 → 5 | *"Classification done. [N] of [M] holdings mapped to an asset class. [K] flagged for one-shot review — quick decision on those?"* |
-| 5 → done | *"Report written — `Investment Analysis Report.md` walks through how much you have, your asset mix, what you own, where you're concentrated, where things sit tax-wise, fees, and anomalies — with the key charts inline and companion CSV/MD drill-downs in `.analysis/`. Would you like to start building a financial plan from here?"* |
+| Stage 1 (opener) → Stage 2 (drop) | *"Got it — that's your expected inventory. Now drop everything you have into one folder and tell me the path. CSV/Excel preferred, PDF fine. If something's a pain to grab, leave it — we'll handle it in a minute."* |
+| Stage 2 (drop) → Stage 3 (gap) | *"Read [N] statements across [M] accounts. Reconciled cleanly. Before I run the full analysis, [K] things to clear up:"* — followed by the gap-reconciliation questions (ticked-but-not-found + statement-only). |
+| Stage 3 (gap) → Phase 3 (Consolidate) | *"Setup confirmed. Consolidating now — should take a few seconds."* |
+| Phase 3 → Phase 4 | *"Consolidated. [N] positions across [M] accounts, totalling $X.XM. Anything obviously missing or wrong before I classify?"* |
+| Phase 4 → Phase 5 | *"Classification done. [N] of [M] holdings mapped to an asset class. [K] flagged for one-shot review — quick decision on those?"* |
+| Phase 5 → done | *"Report written — `Investment Analysis Report.md` walks through how much you have, your asset mix, what you own, where you're concentrated, where things sit tax-wise, fees, and anomalies — with the key charts inline and companion CSV/MD drill-downs in `.analysis/`. Would you like to start building a financial plan from here?"* |
 
 **Banned vocabulary in user-facing copy:** "Phase 3," "Phase 4," "the gate," "termination signal," "phase transition." These are agent terms.
 
@@ -112,9 +115,16 @@ Detailed instructions for each phase live in `references/` — read the relevant
 
 ## Second-visit flow (return user — refresh, not redo)
 
-**Always check first:** does the user's working folder already have an `investment_analysis_config.yaml` + a previous position ledger from a prior session? If yes → this is a **refresh**, not a new setup. Skip the interview and offer:
+**Always check first:** does the user's working folder already have an `investment_analysis_config.yaml` + a previous position ledger from a prior session? If yes → this is a **refresh**, not a new setup. Don't run the full Stage 1 interview. Use a narrower refresh-aware opener:
 
-> "I see you ran this before — your config has [N] accounts and [M] manual annotations from last time. Drop your fresh statements in the same folder and I'll re-run with the same rules. Anything change since last refresh I should know about — new account, distribution started, RE valuation update — or just refresh as-is?"
+> "I see you ran this before — your config tracks [N] accounts, [M] manual annotations, [K] properties. Position ledger is from [date].
+>
+> Two questions before I refresh:
+>
+> 1. **Drop any fresh statements in the same folder.** I'll re-read and surface deltas.
+> 2. **Anything new since last refresh?** [Show the Stage-1 coverage checklist with already-tracked categories pre-marked as `✓ already tracked` — the user only sees the *un-ticked* categories as live options.]"
+
+**The pre-marked checklist is non-negotiable on refresh.** Just asking "anything changed?" silently lets the user skip past forgotten accounts — they won't say "yes my 529 changed" if nothing about it changed. Showing what's *un-ticked* surfaces gaps that the user can't see by introspection.
 
 Read the prior config and prior ledger *before* asking any question. Don't re-ask things already in the config:
 
@@ -124,59 +134,71 @@ Read the prior config and prior ledger *before* asking any question. Don't re-as
 - "What's the RE methodology?" — already in `real_estate[].methodology`
 
 The right second-visit conversation is short:
-1. Re-run ingestion + consolidation against the new statements.
-2. Surface deltas vs the prior ledger (new positions, removed positions, $-value changes at the holding and asset-category level).
-3. Surface any *new* unknowns / anomalies that didn't exist last time.
-4. Refresh charts and commentary.
-5. Stop.
+1. Show the refresh opener (with pre-marked coverage checklist).
+2. Re-run ingestion + consolidation against the new statements.
+3. For any newly-ticked categories: run the Stage 3 gap-reconciliation pattern (drop / value-only / skip).
+4. Surface deltas vs the prior ledger (new positions, removed positions, $-value changes at the holding and asset-category level).
+5. Surface any *new* unknowns / anomalies that didn't exist last time.
+6. Refresh charts and commentary.
+7. Stop.
 
 ---
 
 ## Phase 1: Interview
 
-**Goal:** Learn what investment data exists, who's in the household, what's in the folder, what's *not* in the folder, and what can't be inferred from the documents themselves. Don't read any files yet — answers shape what to read.
+**Goal:** Learn just enough to set up the analysis correctly — without making the user defend account-by-account knowledge before they've shifted into "pull files from portals" energy.
 
-Read `references/interview.md` for the full question list. Briefly:
+Phase 1 runs as **three internal stages** that match the user's actual energy level (not the agent's preferred ordering). Read `references/interview.md` for the full script. Briefly:
 
-- **Open with an outcome hook + privacy note before the first question.** Lead with what the user *gets* (consolidated position view, asset allocation, concentration map, tax-location audit, anomaly surface). Address privacy: files stay on local disk; security/holding text does flow through the API for analysis (be honest); per Anthropic's published policy API conversations aren't used for training by default — phrase that as Anthropic's policy, not your guarantee. Point users at the privacy policy if they want stricter assurance.
+### Stage 1 — Opener (before any files are touched)
 
-- **Account-type coverage — coverage prompts, never enumeration.** Prompt the user with categories, not specific institutions:
-  - Retirement plans (current and former employer)
-  - Pensions — defined benefit, cash balance
-  - Direct brokerage / taxable
-  - IRAs (traditional, Roth, rollover)
-  - Health Savings Account (HSA)
-  - Education accounts (529, Coverdell)
-  - Employer compensation wrappers (deferred comp, restricted stock, RSUs, options, partnership/profit units)
-  - Crypto / digital assets
-  - Cash savings (separate from operational checking)
-  - Real estate held as investment (rentals, raw land, syndications)
-  - Private investments (PE, venture, angel, real estate partnerships)
-  
-  Never list specific institution names ("Schwab, Fidelity, Vanguard"). The point is to nudge memory for account categories, not to bias toward any custodian.
+- **Privacy + outcome hook.** What the user *gets* (consolidated position view, allocation, concentration, tax-location audit, anomaly surface). Honest privacy note: files stay local; security/holding text flows through the API for analysis; per Anthropic's published policy, API conversations aren't used for training by default — phrase that as Anthropic's policy, not your guarantee.
 
-- **Household structure:** Who's in the household? Whose accounts are whose? Joint accounts? Trust accounts? Minor children with 529s?
+- **Structured coverage checklist** via `AskUserQuestion`, presented as **three multi-selects in one call** (grouped to fit the 4-options-per-question limit):
+  1. *Retirement & pensions* — current/former employer plans, IRAs, pensions
+  2. *Direct & tax-advantaged* — taxable brokerage, HSA, 529/Coverdell, cash savings
+  3. *Other holdings* — restricted comp (RSUs/LTIPs/NQDC/profit units), crypto, investment real estate, private investments
 
-- **What can't I tell from the documents themselves?** These don't appear on statements and need direct input:
-  - Roth vs Traditional split inside any qualified plan
-  - Vesting status of restricted comp (and vest dates)
-  - Distribution schedules for deferred comp (NQDC start year, lump vs installment)
-  - Cost basis / accumulated depreciation on investment real estate
-  - Whether the HSA is invested or in cash sweep
-  - Tax-treatment overrides (e.g., user-applied haircut for NQDC at distribution)
+  Never list specific institution names ("Schwab, Fidelity, Vanguard…"). Categories only — naming custodians biases the conversation.
 
-- **Real estate methodology:** If the user has investment real estate, ask whether they want it valued at:
-  - **Carrying** (MV − Mortgage) — simpler, matches what a balance sheet shows
-  - **Liquidation net** (MV − Mortgage − selling costs − cap gains − depreciation recapture estimate) — closer to "deployable wealth"
-  - Default: carrying. Document the choice in config so subsequent runs are consistent.
+- **What NOT to ask in Stage 1:** household structure, Roth/Trad split, vesting, NQDC schedule, HSA invested-vs-cash, RE methodology. All deferred to Stage 3, when statements have surfaced the relevant entities.
 
-- **Existing config?** Auto-detect first — if `investment_analysis_config.yaml` already exists in the folder, preserve it and offer refresh. Only ask the interview questions when the config is absent.
+### Stage 2 — Drop & silent inference
 
-**Never expose source-format quirks** ("Schwab statements bury cost basis in a footnote", "Fidelity uses CUSIPs not tickers for some lines", etc.) in user-facing prompts. That detail is agent-only and lives in `references/ingest.md` and `scripts/extract_positions.py`.
+- Tell the user: *"Now drop everything you have in one folder. CSV / Excel preferred, PDF okay. If something's a pain to grab, leave it — we'll handle it in a minute."* That last line removes the implicit pressure to gather everything upfront.
 
-Use the `AskUserQuestion` tool when there's genuine ambiguity. Don't over-interrogate — five questions max in the opening round. The classify and report phases catch what the interview misses.
+- Run `extract_positions.py` against the folder. Silently infer custodian, account type, employer, owner from statement headers and structural cues. Don't prompt for ambiguities yet — capture them as `pending_questions` for Stage 3.
 
-After the interview, write a one-paragraph **setup summary** back to the user and ask for confirmation before processing files.
+- Reconciliation failures, ambiguous account types, unknown custodians → flag, don't block. All judgment calls are batched into Stage 3.
+
+### Stage 3 — Gap reconciliation
+
+Compute the diff between the **ticked categories** (Stage 1) and the **inferred categories** (Stage 2). Three buckets:
+
+| Bucket | What to do |
+|---|---|
+| Ticked AND found | Silent — already mapped |
+| **Ticked but NOT found** | Ask once: drop now / value-only manual entry / skip |
+| Found but NOT ticked | Confirm — usually a forgotten tick, occasionally a misclassified statement |
+
+Also ask **statement-only questions** in Stage 3, but **only for relevant ticked categories** — never as a generic block:
+
+- Any 401(k)/403(b) → Roth vs Traditional split (default: 100% Traditional, flag)
+- Any NQDC → distribution start, lump vs installments (default: unknown, flag)
+- Any restricted comp → vested vs unvested, vest dates (default: assume listed values vested)
+- HSA → invested or cash sweep (default: cash sweep, flag)
+- Investment real estate → per-property MV, mortgage, methodology (carrying vs liquidation_net), use flag (default: carrying, investment)
+- Primary residence → include in investable or exclude (default: exclude)
+
+Household structure goes here too, anchored to the actual statement names: *"Statements show accounts for [name 1] and [name 2]. Same household? Joint accounts? Trust/LLC-owned?"*
+
+Apply defaults silently for anything the user doesn't answer. **Never make the user defend not knowing.**
+
+### Closing the interview
+
+After Stage 3, write a one-paragraph **setup summary** and wait for confirmation before running the full pipeline. Cheap to catch misunderstandings here; expensive to catch them after the report.
+
+**Never expose source-format quirks** ("Schwab statements bury cost basis in a footnote", "Fidelity uses CUSIPs not tickers", etc.) in user-facing prompts at any stage. Agent-only knowledge — lives in `references/ingest.md` and `scripts/extract_positions.py`.
 
 ---
 

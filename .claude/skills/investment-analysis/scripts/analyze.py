@@ -30,6 +30,8 @@ from typing import Any
 import pandas as pd
 import yaml
 
+from _config_discover import auto_discover_config
+
 
 # -----------------------------------------------------------------------------
 # Helpers
@@ -537,7 +539,10 @@ def main() -> int:
 
     thresholds_path = args.thresholds or (Path(__file__).parent.parent / "references" / "data" / "thresholds.yaml")
     thresholds = load_yaml(thresholds_path)
-    config = load_yaml(args.config) if args.config else {}
+    resolved_config = auto_discover_config(args.work_folder, args.config)
+    config = load_yaml(resolved_config) if resolved_config else {}
+    if resolved_config and not args.config:
+        print(f"  Using config: {resolved_config}")
 
     # Merge user-overridden thresholds
     user_ct = config.get("concentration_thresholds")

@@ -47,6 +47,8 @@ import pandas as pd  # noqa: E402
 import pdfplumber  # noqa: E402
 import yaml  # noqa: E402
 
+from _config_discover import auto_discover_config  # noqa: E402
+
 
 # -----------------------------------------------------------------------------
 # Data types
@@ -666,9 +668,12 @@ def main() -> int:
         return 2
 
     config: dict[str, Any] = {}
-    if args.config and args.config.is_file():
-        with args.config.open() as f:
+    resolved_config = auto_discover_config(args.input_folder, args.config)
+    if resolved_config:
+        with resolved_config.open() as f:
             config = yaml.safe_load(f) or {}
+        if not args.config:
+            print(f"  Using config: {resolved_config}")
 
     # All intermediate artifacts go into a .analysis/ subfolder inside the
     # input folder, keeping the user's source statements + final deliverables

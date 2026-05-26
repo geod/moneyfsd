@@ -35,6 +35,8 @@ import pandas as pd
 import matplotlib.pyplot as plt
 import matplotlib as mpl
 
+from _config_discover import auto_discover_config
+
 
 # -----------------------------------------------------------------------------
 # Aesthetic
@@ -295,7 +297,17 @@ def chart_sankey_html(df: pd.DataFrame, out_path: Path) -> bool:
 def main() -> int:
     ap = argparse.ArgumentParser(description=__doc__)
     ap.add_argument("work_folder", type=Path)
+    # `--config` is accepted (and auto-discovered) for CLI uniformity with
+    # the other pipeline scripts. Charts don't currently consume any config
+    # values, but pipeline wrappers / future palette overrides may want to
+    # pass it through without erroring.
+    ap.add_argument("--config", type=Path, default=None,
+                    help="investment_analysis_config.yaml (accepted for CLI uniformity)")
     args = ap.parse_args()
+
+    resolved_config = auto_discover_config(args.work_folder, args.config)
+    if resolved_config and not args.config:
+        print(f"  Using config: {resolved_config}")
 
     # Intermediates and chart outputs live in .analysis/ subfolder
     io_dir = args.work_folder if args.work_folder.name == ".analysis" else args.work_folder / ".analysis"
