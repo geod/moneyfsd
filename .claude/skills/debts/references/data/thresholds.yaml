@@ -1,0 +1,35 @@
+# Default thresholds for debt analyses.
+#
+# Per-user overrides go in the working folder's debts_config.yaml
+# under `thresholds:` and override these values.
+
+thresholds:
+  # Rate bands surfaced in anomalies.
+  high_rate_revolving_apr: 0.18           # surface CCs/HELOCs (revolving) with APR > 18%
+  high_rate_amortizing_apr: 0.10          # surface amortizing loans (auto, student, personal) with APR > 10%
+  tax_debt_rate_alarm: 0.07               # surface tax-debt at rate > 7%
+
+  # Time-based surfaces.
+  arm_reset_horizon_months: 12            # near-term ARM resets sub-bucket (still surface ALL resets as descriptive)
+  near_payoff_months: 6                   # surface loans within 6 months of payoff
+  promo_expiry_horizon_days: 60           # surface promo rates expiring within 60 days
+
+  # PMI / LTV.
+  pmi_ltv_threshold: 0.78                 # flag PMI on mortgages with reported LTV < 78%
+
+  # Rate-band distribution buckets (used in RateExposure analysis).
+  rate_bands:
+    - { label: "< 5%",     min: 0.00,  max: 0.05 }
+    - { label: "5–7%",     min: 0.05,  max: 0.07 }
+    - { label: "7–10%",    min: 0.07,  max: 0.10 }
+    - { label: "10–15%",   min: 0.10,  max: 0.15 }
+    - { label: "15%+",     min: 0.15,  max: 1.00 }
+
+# Tax-treatment defaults — used when extract/classify can't infer from statements.
+tax_treatment_defaults:
+  primary_residence_mortgage: deductible
+  secondary_or_rental_mortgage: partially_deductible
+  heloc_home_improvement: deductible
+  heloc_mixed_use: partially_deductible
+  heloc_unspecified: non_deductible
+  student_loan: deductible                # subject to phase-out (handled in classify step)

@@ -1,0 +1,152 @@
+# Debt analysis config — example template (PII-free).
+#
+# Generated from the Stage 1 interview + Stage 3 gap reconciliation.
+# Lives at the root of the user's source folder and is re-read on refresh.
+#
+# Layout mirrors investments' example_config.yaml so the future fsdmoney
+# wrapper can compose the two without special-casing.
+
+household:
+  members:
+    - name: primary
+    - name: spouse
+
+# -----------------------------------------------------------------------------
+# accounts — statement-backed loans
+# -----------------------------------------------------------------------------
+# Each block maps a statement file (glob-matched) to a loan record. The
+# extract_loans.py script reads the matched PDFs/CSVs and applies these as
+# overrides + supplemental fields the statements don't expose.
+#
+# `type` taxonomy lives in references/data/loan_type_taxonomy.yaml.
+accounts:
+  - file_match: "mortgage*.pdf"
+    loan_id: primary_mortgage
+    type: mortgage
+    owner: primary
+    secured_by: primary_residence
+    rate_type: fixed                  # fixed | variable | promo
+    co_signer: false
+    notes: "30-year fixed, originated 2021"
+
+  - file_match: "heloc*.pdf"
+    loan_id: heloc_home
+    type: heloc
+    owner: primary
+    secured_by: primary_residence
+    rate_type: variable
+    use: home_improvement             # home_improvement | mixed | other
+    # use=home_improvement → interest deductible per current IRS rules
+    # use=mixed or other → treat as non_deductible
+
+  - file_match: "auto*civic*.pdf"
+    loan_id: auto_civic
+    type: auto
+    owner: spouse
+    secured_by: vehicle_civic
+    rate_type: fixed
+
+  - file_match: "student*nelnet*.pdf"
+    loan_id: student_federal
+    type: student_federal
+    owner: primary
+    servicer: nelnet
+    rate_type: fixed
+    repayment_plan: idr               # idr | standard | graduated | forbearance
+
+  - file_match: "ccard*chase*.pdf"
+    loan_id: ccard_chase_sapphire
+    type: credit_card
+    owner: primary
+    rate_type: variable
+    revolving: true                   # false = paid_in_full each month; excluded from headline debt
+
+# -----------------------------------------------------------------------------
+# manual_entries — loans without a statement (or that user prefers to enter)
+# -----------------------------------------------------------------------------
+# Each entry is a first-class row in the consolidated ledger.
+manual_entries:
+  - loan_id: 401k_loan_primary
+    type: 401k_loan
+    owner: primary
+    balance: 18000
+    rate: 0.065
+    rate_type: fixed
+    term_months_remaining: 36
+    scheduled_payment: 555
+    secured_by: retirement_balance
+    status: amortizing
+    notes: "401(k) loan against primary's plan; balance reduces investable in investments skill"
+
+  - loan_id: family_loan_parents
+    type: family
+    owner: primary
+    balance: 12000
+    rate: 0.0
+    rate_type: fixed
+    status: informal                  # excluded from weighted-avg-rate and payoff-timeline analyses
+    notes: "No formal schedule; informal repayment expectation"
+
+  - loan_id: bnpl_affirm_furniture
+    type: bnpl
+    owner: spouse
+    lender: affirm
+    balance: 1850
+    rate: 0.0                         # promotional
+    rate_type: promo
+    promo_end_date: 2026-08-15        # surfaced in anomalies if within 60 days
+    term_months_remaining: 6
+    scheduled_payment: 308
+
+  - loan_id: medical_hospital_2025
+    type: medical
+    owner: primary
+    balance: 3200
+    rate: 0.0
+    rate_type: fixed
+    status: amortizing
+    scheduled_payment: 100
+    notes: "Hospital payment plan, interest-free"
+
+  - loan_id: tax_irs_2024
+    type: tax
+    owner: primary
+    balance: 8500
+    rate: 0.08                        # federal short-term rate + 3%, recalibrated quarterly
+    rate_type: variable
+    scheduled_payment: 250
+    notes: "IRS installment agreement"
+
+# -----------------------------------------------------------------------------
+# thresholds — defaults for analyses (overridable per-config)
+# -----------------------------------------------------------------------------
+# Mirrors references/data/thresholds.yaml; values here override the defaults.
+thresholds:
+  high_rate_revolving_apr: 0.18       # anomalies surface if revolving APR > this
+  arm_reset_horizon_months: 12        # surface ARMs resetting within this window
+  near_payoff_months: 6               # flag loans within this many months of payoff
+  pmi_ltv_threshold: 0.78             # flag mortgages with PMI when reported LTV is below this
+  promo_expiry_horizon_days: 60       # surface promo rates expiring within this window
+  tax_debt_rate_alarm: 0.07           # surface tax-debt rates above this
+
+# -----------------------------------------------------------------------------
+# reconciliation — per-statement extraction tolerance
+# -----------------------------------------------------------------------------
+reconciliation:
+  per_statement:
+    absolute_usd: 1.0                 # accept rounding within $1
+    relative_pct: 0.001               # accept relative drift within 0.1%
+
+# -----------------------------------------------------------------------------
+# pending_categories — ticked-in-Stage-1 but skipped-in-Stage-3
+# -----------------------------------------------------------------------------
+# Surfaced on the next refresh as a "you skipped these last time — still skip?"
+# nudge. Quiet nag, not a block.
+pending_categories: []
+
+# -----------------------------------------------------------------------------
+# notes
+# -----------------------------------------------------------------------------
+notes:
+  spouse_accounts_in_scope: true
+  joint_debt_split_rule: 50_50        # 50_50 | by_borrower_order | manual

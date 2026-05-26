@@ -1,0 +1,140 @@
+# Canonical loan-type taxonomy for the debts skill.
+#
+# Each entry maps a `type` value (used in config + ledger) to its
+# default status, default tax treatment, default secured_by, and any
+# inference cues used by extract_loans.py and classify.py.
+
+types:
+  mortgage:
+    label: Mortgage
+    default_status: amortizing
+    default_tax_treatment: deductible          # primary-residence mortgage interest, subject to IRS limits
+    default_secured_by: primary_residence
+    statement_markers:
+      - "mortgage statement"
+      - "principal balance"
+      - "escrow"
+    notes: "Standard amortizing home loan. Interest deductible within IRS limits ($750k post-2017)."
+
+  heloc:
+    label: HELOC
+    default_status: revolving                  # during draw period; converts to amortizing in repayment
+    default_tax_treatment: partially_deductible  # only home-improvement use is deductible
+    default_secured_by: primary_residence
+    statement_markers:
+      - "home equity line"
+      - "heloc"
+      - "draw period"
+    notes: "Home equity line of credit. Interest deductibility depends on use of funds."
+
+  auto:
+    label: Auto loan
+    default_status: amortizing
+    default_tax_treatment: non_deductible
+    default_secured_by: vehicle
+    statement_markers:
+      - "auto loan"
+      - "vehicle financing"
+      - "vin"
+    notes: "Standard amortizing vehicle loan."
+
+  student_federal:
+    label: Federal student loan
+    default_status: amortizing
+    default_tax_treatment: deductible          # student loan interest deduction (subject to phase-out)
+    default_secured_by: null
+    statement_markers:
+      - "federal student aid"
+      - "mohela"
+      - "nelnet"
+      - "edfinancial"
+      - "aidvantage"
+    notes: "Federal student loan. Interest deductible up to $2,500/year (phased out above MAGI thresholds)."
+
+  student_private:
+    label: Private student loan
+    default_status: amortizing
+    default_tax_treatment: deductible          # same federal deduction rules apply
+    default_secured_by: null
+    statement_markers:
+      - "sallie mae"
+      - "earnest"
+      - "sofi student"
+    notes: "Private student loan. Same interest-deduction rules as federal."
+
+  credit_card:
+    label: Credit card
+    default_status: revolving
+    default_tax_treatment: non_deductible
+    default_secured_by: null
+    statement_markers:
+      - "minimum payment due"
+      - "credit limit"
+      - "interest charge calculation"
+    notes: "Revolving consumer credit. APR usually variable. Excluded from headline debt if balance is paid in full each month."
+
+  personal:
+    label: Personal loan
+    default_status: amortizing
+    default_tax_treatment: non_deductible
+    default_secured_by: null
+    statement_markers:
+      - "personal loan"
+      - "installment loan"
+    notes: "Unsecured installment loan (SoFi, LendingClub, Marcus, etc.)."
+
+  401k_loan:
+    label: 401(k) loan
+    default_status: amortizing
+    default_tax_treatment: non_deductible      # paid back with after-tax dollars
+    default_secured_by: retirement_balance
+    statement_markers: []                      # typically inside the retirement plan statement
+    notes: "Loan against retirement plan balance. Reduces investable balance in investments skill."
+
+  bnpl:
+    label: Buy-now-pay-later
+    default_status: amortizing
+    default_tax_treatment: non_deductible
+    default_secured_by: null
+    statement_markers:
+      - "affirm"
+      - "klarna"
+      - "afterpay"
+      - "payment plan"
+    notes: "Installment financing tied to specific purchases. Often 0% promo with end date."
+
+  medical:
+    label: Medical debt
+    default_status: amortizing
+    default_tax_treatment: non_deductible
+    default_secured_by: null
+    statement_markers:
+      - "medical billing"
+      - "hospital payment plan"
+    notes: "Hospital / provider payment plans. Often 0% interest. May be in collections."
+
+  tax:
+    label: Tax debt
+    default_status: amortizing
+    default_tax_treatment: non_deductible
+    default_secured_by: null
+    statement_markers:
+      - "irs installment"
+      - "payment plan"
+    notes: "IRS or state tax payment plan. IRS rate = federal short-term + 3%, recalibrated quarterly."
+
+  family:
+    label: Family / informal loan
+    default_status: informal
+    default_tax_treatment: non_deductible
+    default_secured_by: null
+    statement_markers: []                      # never on a statement
+    notes: "Informal loan from a person, not an institution. Excluded from weighted-avg-rate and payoff-timeline analyses."
+
+  other:
+    label: Other
+    default_status: amortizing
+    default_tax_treatment: non_deductible
+    default_secured_by: null
+    statement_markers: []
+    notes: "Catch-all for debts that don't fit a defined type."
